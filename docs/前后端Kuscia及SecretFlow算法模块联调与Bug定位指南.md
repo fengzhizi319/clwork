@@ -5,6 +5,32 @@
 
 ---
 
+## 目录
+
+- [1. 整体架构与数据流](#1-整体架构与数据流)
+- [2. 环境启动与端口速查](#2-环境启动与端口速查)
+  - [2.1 推荐启动方式](#21-推荐启动方式)
+  - [2.2 本地默认端口](#22-本地默认端口)
+  - [2.3 关键环境变量（后端连接 Kuscia）](#23-关键环境变量后端连接-kuscia)
+- [3. 问题分层定位法](#3-问题分层定位法)
+  - [3.1 第一层：前端是否把请求正确发出去](#31-第一层前端是否把请求正确发出去)
+  - [3.2 第二层：后端是否收到并正确处理请求](#32-第二层后端是否收到并正确处理请求)
+  - [3.3 第三层：Kuscia 是否把任务调度成 Pod](#33-第三层kuscia-是否把任务调度成-pod)
+  - [3.4 第四层：SecretFlow 组件是否正确执行](#34-第四层secretflow-组件是否正确执行)
+- [4. 典型 Bug 定位流程示例](#4-典型-bug-定位流程示例)
+  - [案例：差分隐私流水线 reset 后卡住](#案例差分隐私流水线-reset-后卡住)
+  - [案例：SecretPad 后端编译失败（NodeEvalParam 协议升级）](#案例secretpad-后端编译失败nodeevalparam-协议升级)
+  - [案例：差分隐私流水线运行失败（protobuf Any type_url 不匹配）](#案例差分隐私流水线运行失败protobuf-any-type_url-不匹配)
+  - [案例：自定义 SecretFlow 镜像构建失败（pip 哈希校验失败）](#案例自定义-secretflow-镜像构建失败pip-哈希校验失败)
+  - [案例：差分隐私流水线运行失败（MessageToJson 参数不兼容）](#案例差分隐私流水线运行失败messagetojson-参数不兼容)
+  - [案例：K-匿名本地测试 "no tests ran"（pytest --env 过滤）](#案例k-匿名本地测试-no-tests-ranpytest-env-过滤)
+  - [案例：前端 K-匿名流水线运行失败（QI 列与数据不匹配）](#案例前端-k-匿名流水线运行失败qi-列与数据不匹配)
+- [5. 常用命令速查表](#5-常用命令速查表)
+- [6. 调试建议与最佳实践](#6-调试建议与最佳实践)
+- [7. 扩展：新增一个算法组件的端到端 checklist](#7-扩展新增一个算法组件的端到端-checklist)
+
+---
+
 ## 1. 整体架构与数据流
 
 ```text
@@ -361,13 +387,13 @@ docker exec ${USER}-kuscia-lite-alice crictl logs <container-id>
 如果你修改了 `secretflow/secretflow/component/...` 下的组件，推荐先在本地单进程跑通，再放到 Kuscia 里跑。
 
 ```bash
-cd /home/charles/code/sfwork/secretflow
+cd $SFWORK/secretflow
 
 # 激活 conda 环境
 conda activate sf310
 
-# 运行已有组件测试
-python -m pytest tests/component/privacy/test_privacy_components.py::test_differential_privacy_component_sim -v
+# 运行已有组件测试（默认 sim 模式，直接运行即可）
+python -m pytest tests/component/privacy/test_privacy_components.py -k k_anonymity -v
 ```
 
 一个最小可复现的本地测试骨架：
@@ -832,6 +858,196 @@ domain_data.attributes["dist_data"] = _message_to_json_compat(
 - 对这类 API 不兼容点，加一个运行时判断的 wrapper 比硬改参数更安全，能同时兼容 protobuf 4.x 和 5.x/6.x。
 - 镜像变更后务必重新导入 Kuscia Lite，否则 Kuscia 仍会调度旧镜像，导致“已经改了代码为什么还报错”的错觉。
 
+### 案例：K-匿名本地测试 "no tests ran"（pytest --env 过滤）
+
+**现象**：在本地运行 K-匿名组件的仿真测试时，pytest 显示 "collected 1 item" 但紧接着 "no tests ran"，退出码为 5：
+
+```bash
+cd $SFWORK/secretflow
+conda activate sf310
+python -m pytest tests/component/privacy/test_privacy_components.py::test_k_anonymity_component_sim -v
+```
+
+输出：
+
+```text
+collecting ... collected 1 item
+============================ no tests ran in 0.01s =============================
+```
+
+没有任何 PASSED / FAILED / ERROR，测试根本没有执行。
+
+**定位步骤**：
+
+1. 检查 `pytest.ini`，发现 `addopts` 中强制设置了 `--env=prod`：
+
+   ```ini
+   [pytest]
+   addopts = --env=prod -v
+   ```
+
+2. 查看 `tests/conftest.py` 中 `pytest_collection_modifyitems` 的过滤逻辑：
+
+   ```python
+   def should_skip(item):
+       mark = item.get_closest_marker("mpc")
+       if mark is not None:
+           # MPC 测试：prod 模式下运行
+           ...
+       else:
+           # 普通测试（无 @pytest.mark.mpc）：仅在 sim 模式下运行
+           return env != "sim"  # env="prod" → True → 跳过
+   ```
+
+3. `test_k_anonymity_component_sim` 是仿真测试（无 `@pytest.mark.mpc` 标记），在 `--env=prod` 下被过滤掉。
+4. 而 `--env` 选项的 **默认值** 本身就是 `sim`（`conftest.py` 第 96 行：`default="sim"`），CI 中也是显式传递 `--env=prod` 或 `--env=sim`，`pytest.ini` 里的 `--env=prod` 是多余且有害的。
+
+**修复方案**：
+
+修改 `secretflow/pytest.ini`，移除 `addopts` 中强制的 `--env=prod`：
+
+```ini
+# 修改前
+addopts = --env=prod -v
+
+# 修改后
+addopts = -v
+```
+
+这样本地开发时默认使用 `--env=sim`（conftest 中的默认值），仿真测试可以直接运行；CI 中已显式传递 `--env` 参数，不受影响。
+
+**验证**：
+
+```bash
+# 修复后直接运行（无需手动加 --env=sim）
+python -m pytest tests/component/privacy/test_privacy_components.py -k k_anonymity -v
+# 3 passed
+
+# 完整隐私组件测试
+python -m pytest tests/component/privacy/test_privacy_components.py -v
+# 18 passed
+
+# CI 模式仍然正常
+python -m pytest tests/component/privacy/test_privacy_components.py -v --env=prod
+# 4 passed（MPC 测试）
+```
+
+**经验总结**：
+
+- SecretFlow 的 pytest 通过 `--env` 选项区分三种测试环境：
+  - `sim`（默认）：单进程仿真，运行普通测试，跳过 `@pytest.mark.mpc`；
+  - `prod`：多进程 MPC 模式，运行 `@pytest.mark.mpc` 测试；
+  - `ray_prod`：Ray 后端 MPC 模式。
+- **本地开发隐私组件时**，直接 `pytest tests/component/privacy/ -v` 即可（默认 sim 模式）。
+- **不要在 `pytest.ini` 的 `addopts` 中硬编码 `--env`**，否则会覆盖默认值，导致本地仿真测试被静默跳过。
+- 当看到 "collected N items" 但 "no tests ran" 时，首先检查 `--env` 设置和 `pytest.ini` 的 `addopts`。
+- 如果确实需要在 prod 模式下运行 MPC 测试，显式传递 `--env=prod`：
+
+  ```bash
+  python -m pytest tests/component/privacy/test_privacy_components.py -v --env=prod
+  ```
+
+---
+
+### 案例：前端 K-匿名流水线运行失败（QI 列与数据不匹配）
+
+**现象**：在前端创建 K-匿名测试流水线并点击“运行”后，节点状态变为失败。页面 URL 形如：
+
+```
+http://localhost:8000/dag?projectId=dcucgakp&mode=MPC&dagId=klflmlhv
+```
+
+**定位步骤**：
+
+1. 查看后端日志，确认任务已提交到 Kuscia 并失败：
+
+   ```bash
+   grep "klflmlhv" $SFWORK/logs/backend.log | grep -i "fail\|error"
+   ```
+
+   看到 `jobState=Failed`，`taskId=yquq-klflmlhv-node-2`。
+
+2. 从日志中提取 SecretFlow 容器错误信息：
+
+   ```text
+   ERROR entry.py:432 [alice] -- Missing QI columns: {'zipcode'}
+   ```
+
+3. 分析任务参数：
+
+   ```text
+   comp_id: "privacy/k_anonymity:1.1.0"
+   qi_cols_json: ["age","zipcode"]
+   sa_cols_json: ["diagnosis"]
+   ```
+
+4. 分析输入数据的实际列（从 meta 中解码）：
+
+   ```text
+   features: id1, age, education, default, balance, housing, loan, day,
+             duration, campaign, pdays, previous, job_blue-collar, ...
+   ```
+
+5. **结论**：数据中没有 `zipcode` 和 `diagnosis` 列。K-匿名模板硬编码了 `qi_cols=["age","zipcode"]`、`sa_cols=["diagnosis"]`（为医疗记录数据集设计），但用户连接的是银行营销数据集，列名不匹配。
+
+**根因**：
+
+前端 K-匿名流水线模板 (`pipeline-template-k-anonymity.ts`) 中硬编码了准标识符列和敏感属性列的默认值，且没有提供快速配置面板让用户根据实际数据选择列。
+
+**修复方案**：
+
+1. 新增 `quick-config-k-anonymity.tsx` 快速配置组件，提供：
+   - 样本表选择（自动加载项目已授权数据表）
+   - 准标识符列 (QI) 多选（从数据表列中动态加载）
+   - 敏感属性列 (SA) 多选
+
+2. 在 `quick-config-drawer.tsx` 中注册 K_ANONYMITY 和 L_DIVERSITY 类型的快速配置面板。
+
+3. 修改 `pipeline-template-k-anonymity.ts` 和 `pipeline-template-l-diversity.ts`，从 `quickConfigs` 中读取用户选择的列，而非硬编码：
+
+   ```typescript
+   // 修改前
+   s: JSON.stringify(['age', 'zipcode']),  // 硬编码
+
+   // 修改后
+   const { qiCols, saCols } = quickConfigs || {};
+   s: JSON.stringify(qiCols || []),  // 动态读取用户选择
+   ```
+
+**涉及文件**：
+
+| 文件 | 操作 |
+|------|------|
+| `frontend-src/.../quick-config-k-anonymity.tsx` | 新增 |
+| `frontend-src/.../quick-config-drawer.tsx` | 注册 K_ANONYMITY / L_DIVERSITY |
+| `frontend-src/.../pipeline-template-k-anonymity.ts` | 动态列替换硬编码 |
+| `frontend-src/.../pipeline-template-l-diversity.ts` | 同上 |
+
+**验证**：
+
+1. 前端构建无报错：
+
+   ```bash
+   cd $SFWORK/secretpad/frontend-src
+   npx tsc --noEmit --project apps/platform/tsconfig.json
+   ```
+
+2. 重新创建 K-匿名流水线，在快速配置面板中选择正确的 QI/SA 列后保存并运行，任务应成功。
+
+**经验总结**：
+
+- 隐私组件的列参数（qi_cols、sa_cols、query_col 等）**必须与实际数据表的列名一致**，否则 SecretFlow 会报 `Missing QI columns` 或类似错误。
+- 流水线模板不应硬编码列名，应通过快速配置面板让用户从实际数据中选择。
+- 定位此类问题的关键是看 SecretFlow 容器日志中的 `ERROR entry.py` 行，它会明确告诉你哪个列缺失。
+- 快速查看容器错误：
+
+  ```bash
+  # 从后端日志中提取 SecretFlow 错误
+  grep "klflmlhv" $SFWORK/logs/backend.log | grep "ERROR entry.py"
+  ```
+
+---
+
 ## 5. 常用命令速查表
 
 ### 服务状态
@@ -892,9 +1108,16 @@ docker run --rm --entrypoint python secretflow/sf-privacy-dev:1.15.0.dev-privacy
 # 查看组件列表 JSON
 docker run --rm secretflow/sf-privacy-dev:1.15.0.dev-privacy cat /app/docker/comp_list.json | head -100
 
-# 本地运行组件测试
-cd /home/charles/code/sfwork/secretflow
+# 本地运行隐私组件测试（默认 sim 模式，无需加 --env）
+cd $SFWORK/secretflow
+conda activate sf310
 python -m pytest tests/component/privacy/test_privacy_components.py -v
+
+# 只跑 k-匿名相关测试
+python -m pytest tests/component/privacy/test_privacy_components.py -k k_anonymity -v
+
+# 运行 MPC 模式测试（需要多进程环境）
+python -m pytest tests/component/privacy/test_privacy_components.py -v --env=prod
 ```
 
 ---

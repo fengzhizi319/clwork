@@ -1,8 +1,12 @@
 #!/bin/bash
 #
 # ============================================================================
-# sfwork 二次开发环境一键启动脚本(使用自定义 SecretFlow 隐私计算镜像)
+# sfwork 二次开发环境一键启动脚本（使用自定义 SecretFlow 隐私计算镜像）
 # ============================================================================
+#
+# 支持平台:
+#   - macOS ARM64 (Apple Silicon) — Kuscia 通过 Docker (colima) 运行
+#   - Linux x86_64 / ARM64 — Kuscia 通过 Docker 运行
 #
 # 功能概述:
 #   本脚本用于一键拉起完整的 sfwork 二次开发环境,核心特点:
@@ -392,6 +396,38 @@ check_environment() {
         exit 1
     fi
 
+    # macOS Docker 守护进程检测:
+    #   macOS 上 Docker 依赖 colima 或 Docker Desktop 提供守护进程,
+    #   若未启动则 docker 命令会报 "Cannot connect to the Docker daemon".
+    #   此处提前检测并尝试自动启动 colima,避免后续步骤失败.
+    if is_macos; then
+        if ! docker info >/dev/null 2>&1; then
+            log_warn "Docker 守护进程未运行,尝试自动启动 colima ..."
+            if command_exists colima; then
+                colima start
+                # 等待 Docker 守护进程就绪(最多 60 秒)
+                local wait_i
+                for ((wait_i = 0; wait_i < 60; wait_i++)); do
+                    if docker info >/dev/null 2>&1; then
+                        break
+                    fi
+                    sleep 1
+                done
+                if docker info >/dev/null 2>&1; then
+                    log_info "colima 已启动,Docker 守护进程就绪"
+                else
+                    log_error "colima 启动后 Docker 仍不可用,请手动检查:colima status"
+                    exit 1
+                fi
+            else
+                log_error "Docker 守护进程未运行,且未找到 colima"
+                log_error "请安装并启动 colima:brew install colima && colima start"
+                log_error "或启动 Docker Desktop 应用"
+                exit 1
+            fi
+        fi
+    fi
+
     # 架构检测:在 ARM macOS 上给出友好提示
     local arch
     arch="$(uname -m)"
@@ -692,6 +728,18 @@ build_secretflow_image() {
         log_info "镜像 $PRIVACY_IMAGE 已存在,跳过构建"
         log_warn "如需重新构建,请先执行删除镜像的命令:docker rmi $PRIVACY_IMAGE"
         return 0
+    fi
+
+    # 停用可能激活的 Python virtualenv(.venv 等),避免干扰 conda 环境切换.
+    # 现象:若当前 shell 激活了 .venv,即使 conda activate 成功,
+    #       python 仍指向 .venv/bin/python,导致 "import build" 失败.
+    if [[ -n "${VIRTUAL_ENV:-}" ]]; then
+        log_info "检测到已激活的 virtualenv($VIRTUAL_ENV),临时停用以避免干扰 conda"
+        deactivate 2>/dev/null || true
+        unset VIRTUAL_ENV
+        # 从 PATH 中移除 .venv 相关路径
+        PATH="$(echo "$PATH" | tr ':' '\n' | grep -v '\.venv' | tr '\n' ':' | sed 's/:$//')"
+        export PATH
     fi
 
     # 激活 conda 环境

@@ -4,6 +4,11 @@
 # 无 Docker 运行脚本 - 一键启动 sfwork 本地开发环境
 # ============================================================================
 #
+# ❗ 平台限制：本脚本仅支持 Linux！
+#   macOS 用户请使用 scripts/dev-start.sh（Kuscia 通过 Docker 容器运行）。
+#   原因：Kuscia 本地二进制依赖 containerd/runc/K3s 等 Linux 内核特性，
+#         无法在 macOS 上运行；且脚本使用 ss 命令检测端口，macOS 没有该命令。
+#
 # 功能概述：
 #   本脚本在本地直接启动 sfwork 完整开发环境，不依赖 Docker 容器。
 #   启动内容包括：
@@ -593,6 +598,14 @@ main() {
     if [[ "${1:-}" == "--stop" ]]; then
         stop_all_services
         exit 0
+    fi
+
+    # 平台检测：本脚本仅支持 Linux
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        log_error "本脚本 (run-all-no-docker.sh) 仅支持 Linux！"
+        log_error "macOS 上 Kuscia 无法以本地二进制方式运行（依赖 containerd/runc/K3s 等 Linux 内核特性）。"
+        log_error "请使用 Docker 模式：bash scripts/dev-start.sh"
+        exit 1
     fi
 
     check_dependencies
