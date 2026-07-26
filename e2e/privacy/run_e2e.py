@@ -179,6 +179,25 @@ class SecretPadClient:
             raise RuntimeError(f"upload_data failed: {resp}")
         return resp["data"]["realName"]
 
+    def list_datatables(self, owner_id: str) -> List[Dict]:
+        """List all datatables owned by *owner_id*; returns list of datatableVO dicts."""
+        resp = self._request(
+            "POST",
+            "/api/v1alpha1/datatable/list",
+            {"ownerId": owner_id, "pageNumber": 1, "pageSize": 1000},
+        )
+        if resp.get("status", {}).get("code") != 0:
+            return []
+        items = resp.get("data", {}).get("datatableNodeVOList", [])
+        return [item.get("datatableVO", {}) for item in items]
+
+    def find_datatable_by_name(self, owner_id: str, name: str) -> Optional[str]:
+        """Return datatableId of an Available datatable with the given name, or None."""
+        for vo in self.list_datatables(owner_id):
+            if vo.get("datatableName") == name and vo.get("status") == "Available":
+                return vo.get("datatableId")
+        return None
+
     def create_datatable(
         self,
         owner_id: str,
@@ -447,6 +466,7 @@ def run_e2e_component(
     data_dir: Path,
     out_dir: Path,
     node_id: str = "alice",
+    force_upload: bool = False,
 ) -> Dict:
     comp = param["component"]
     comp_name = comp["name"]
@@ -464,27 +484,35 @@ def run_e2e_component(
     datatable_id = None
     needs_datatable = has_input or param.get("dummy_input") is not None
     if needs_datatable:
-        data_file = param.get("input_data") or param.get("dummy_input")
-        csv_path = data_dir / data_file
-        df = pd.read_csv(csv_path)
-        real_name = client.upload_data(node_id, csv_path)
-        time.sleep(1)
-        columns = [
-            {
-                "colName": col,
-                "colType": _dtype_to_col_type(str(t)),
-                "colComment": "",
-            }
-            for col, t in zip(df.columns, df.dtypes)
-        ]
-        datatable_id = client.create_datatable(
-            owner_id=node_id,
-            node_ids=[node_id],
-            datatable_name=f"{comp_name}_input",
-            relative_uri=real_name,
-            description=f"Input for {comp_name}",
-            columns=columns,
-        )
+        datatable_name = f"{comp_name}_input"
+        # Reuse an existing datatable with the same name to avoid duplicates.
+        if not force_upload:
+            datatable_id = client.find_datatable_by_name(node_id, datatable_name)
+            if datatable_id:
+                print(f"  [reuse] existing datatable '{datatable_name}' ({datatable_id})")
+        if not datatable_id:
+            data_file = param.get("input_data") or param.get("dummy_input")
+            csv_path = data_dir / data_file
+            df = pd.read_csv(csv_path)
+            real_name = client.upload_data(node_id, csv_path)
+            time.sleep(1)
+            columns = [
+                {
+                    "colName": col,
+                    "colType": _dtype_to_col_type(str(t)),
+                    "colComment": "",
+                }
+                for col, t in zip(df.columns, df.dtypes)
+            ]
+            datatable_id = client.create_datatable(
+                owner_id=node_id,
+                node_ids=[node_id],
+                datatable_name=datatable_name,
+                relative_uri=real_name,
+                description=f"Input for {comp_name}",
+                columns=columns,
+            )
+            print(f"  [created] new datatable '{datatable_name}' ({datatable_id})")
         client.add_datatable_to_project(project_id, node_id, datatable_id)
 
     graph_id = client.create_graph(project_id, f"{comp_name}-graph")
@@ -564,6 +592,11 @@ def main():
         default="alice",
         help="Node that owns the input data",
     )
+    parser.add_argument(
+        "--force-upload",
+        action="store_true",
+        help="Force re-upload data and create new datatables even if reusable ones exist",
+    )
     args = parser.parse_args()
 
     if not HAS_REQUESTS:
@@ -583,7 +616,7 @@ def main():
         print(f"\nE2E: {param_file.stem}")
         with open(param_file) as f:
             param = json.load(f)
-        saved = run_e2e_component(client, param, param_file.stem, data_dir, out_dir, args.node)
+        saved = run_e2e_component(client, param, param_file.stem, data_dir, out_dir, args.node, args.force_upload)
         results[param_file.stem] = saved
         print(f"  -> saved to {out_dir / param['component']['name']}")
         time.sleep(2)
