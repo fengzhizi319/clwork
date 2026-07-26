@@ -9,8 +9,7 @@
 #   当前 sfwork 根仓库只管理文档、配置和编排脚本；四大子项目及本地隐私 SDK/Agent 作为独立 git 仓库存在。
 #
 # 默认克隆的子项目：
-#   - secretpad             -> ./secretpad/           （SecretPad 后端）
-#   - secretpad-frontend    -> ./secretpad/frontend-src/ （SecretPad 前端，嵌套在 secretpad/ 下）
+#   - secretpad             -> ./secretpad/           （SecretPad 后端 + 新前端 web/）
 #   - kuscia                -> ./kuscia/
 #   - secretflow            -> ./secretflow/
 #   - privacy-java-sdk      -> ./privacy-java-sdk/
@@ -18,8 +17,8 @@
 #   - privacy-local-agent   -> ./privacy-local-agent/
 #
 # 说明：
-#   - secretpad 仓库本身只包含后端源码，前端源码在 secretpad-frontend 仓库，
-#     需要克隆到 ./secretpad/frontend-src/ 目录下（已被 secretpad/.gitignore 忽略）。
+#   - secretpad 仓库现在同时包含后端源码和新前端源码（secretpad/web/），
+#     不再需要从独立的 secretpad-frontend 仓库克隆 frontend-src/。
 #   - 如果目标目录已存在且是 git 仓库，脚本会执行 git pull 并切换到指定分支。
 #   - 如果目标目录已存在但不是一个 git 仓库，脚本会跳过并给出警告。
 #   - 单个仓库处理失败不会阻塞后续仓库的克隆/更新。
@@ -287,13 +286,11 @@ process_repo() {
 
 process_repo "$SECRETPAD_REPO"           "$SFWORK_ROOT/secretpad"                  "$SECRETPAD_BRANCH"
 
-# secretpad-frontend 克隆到 secretpad/frontend-src/，依赖 secretpad 是一个有效的 git 仓库。
-# 若 secretpad 克隆失败或存在但不是 git 仓库，提前跳过，避免目录结构错乱。
+# 注意：新前端已内置于 secretpad/web/ 目录，随 secretpad 仓库一起克隆，
+# 不再需要从独立的 secretpad-frontend 仓库克隆到 frontend-src/。
 if [ ! -d "$SFWORK_ROOT/secretpad/.git" ]; then
-    log_error "secretpad 不是有效的 git 仓库，跳过 secretpad-frontend 克隆（请先确保 secretpad 克隆成功）"
+    log_error "secretpad 不是有效的 git 仓库，请检查 secretpad 是否克隆成功"
     FAILED_COUNT=$((FAILED_COUNT + 1))
-else
-    process_repo "$SECRETPAD_FRONTEND_REPO"  "$SFWORK_ROOT/secretpad/frontend-src"     "$SECRETPAD_FRONTEND_BRANCH"
 fi
 
 process_repo "$KUSCIA_REPO"              "$SFWORK_ROOT/kuscia"                     "$KUSCIA_BRANCH"
