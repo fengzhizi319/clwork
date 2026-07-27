@@ -1030,6 +1030,13 @@ start_backend() {
 #   说明:
 #     - 新前端基于 Vite 5,代理配置已固化在 vite.config.ts 中(默认转发 /api 到 8080)
 #     - 首次运行时会执行 pnpm install 安装依赖
+#   健壮化设计:
+#     1. Vite 首次启动/冷启动时可能需要先完成依赖安装和预构建,仅检查端口监听
+#        可能端口已占但 Vite 尚未返回 HTTP 200,因此端口就绪后再用 curl 验证
+#        HTTP 200,确保浏览器可正常访问。
+#     2. 超时时间设置为 180 秒,覆盖 pnpm install + Vite 首次预构建的耗时。
+#     3. 使用 curl 的 --retry 机制作为二次确认,避免端口监听与 HTTP 就绪之间的
+#        竞态窗口导致"出错了"等误导性报错。
 start_frontend() {
     log_step "启动 SecretPad 前端 ..."
     local pidfile="$LOG_DIR/frontend.pid"
@@ -1054,7 +1061,25 @@ start_frontend() {
     # Windows Git Bash 可能不支持 disown,因此忽略失败.
     disown $! 2>/dev/null || true
     log_info "前端进程已启动,pid $!"
-    wait_for_port 127.0.0.1 8000 120 "前端开发服务器"
+
+    # 1) 等待端口监听:180 秒覆盖依赖安装+预构建
+    if ! wait_for_port 127.0.0.1 8000 180 "前端开发服务器"; then
+        return 1
+    fi
+
+    # 2) 等待 HTTP 200:确认 Vite 已完成初始构建并返回首页,而非仅 bind 端口
+    log_info "等待前端 HTTP 首页可访问 ..."
+    local http_wait=30
+    local i
+    for ((i = 0; i < http_wait; i++)); do
+        if curl -fsS --max-time 2 "http://127.0.0.1:8000/" >/dev/null 2>&1; then
+            log_info "前端 HTTP 首页已就绪"
+            return 0
+        fi
+        sleep 1
+    done
+    log_error "前端 HTTP 首页在 127.0.0.1:8000 未就绪,请查看 $LOG_DIR/frontend.log"
+    return 1
 }
 
 # print_summary
