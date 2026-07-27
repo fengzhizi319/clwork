@@ -36,17 +36,17 @@
 #   - 优先级:当前 shell 环境变量 > .env 文件 > 脚本内置默认值
 #
 # 用法:
-#   bash scripts/dev-start.sh          # 完整启动
-#   bash scripts/dev-start.sh --check  # 仅检查环境
-#   bash scripts/dev-start.sh --help   # 显示帮助
+#   bash scripts1/dev-start.sh          # 完整启动
+#   bash scripts1/dev-start.sh --check  # 仅检查环境
+#   bash scripts1/dev-start.sh --help   # 显示帮助
 #
 # 运行平台:
 #   - Linux / macOS 原生 Bash
 #   - Windows 请在 Git Bash / MSYS2 / WSL2 的 Bash 环境中运行
 #
 # 停止服务:
-#   bash scripts/dev-stop.sh
-#   bash scripts/dev-stop.sh --kuscia  # 同时停止 Kuscia 容器
+#   bash scripts1/dev-stop.sh
+#   bash scripts1/dev-stop.sh --kuscia  # 同时停止 Kuscia 容器
 # ============================================================================
 
 # Bash 严格模式:
@@ -59,13 +59,13 @@ set -euo pipefail
 # 全局路径与变量
 # ------------------------------------------------------------------
 # SFWORK_ROOT: sfwork 工作区根目录,根据本脚本所在位置自动推导
-# 本脚本位于 sfwork/scripts/ 下,因此根目录为其父目录
+# 本脚本位于 sfwork/scripts1/ 下,因此根目录为其父目录
 SFWORK_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # ------------------------------------------------------------------
 # 从 .env 文件加载环境变量配置
 # ------------------------------------------------------------------
-# DEV_START_ENV_FILE: 可自定义 env 文件路径,默认读取 scripts 目录下的 .env
+# DEV_START_ENV_FILE: 可自定义 env 文件路径,默认读取 scripts1 目录下的 .env
 # 使用 set -a / set +a 让 .env 中定义的所有变量自动 export 到当前 shell
 DEV_START_ENV_FILE="${DEV_START_ENV_FILE:-$(dirname "${BASH_SOURCE[0]}")/.env}"
 if [[ -f "$DEV_START_ENV_FILE" ]]; then
@@ -95,20 +95,20 @@ LOG_DIR="${LOG_DIR:-$SFWORK_ROOT/logs}"
 
 # PRIVACY_IMAGE: 自定义 SecretFlow 镜像 tag
 #   支持通过 .env 文件或环境变量覆盖,例如:
-#   PRIVACY_IMAGE=myregistry/sf-privacy:dev bash scripts/dev-start.sh
+#   PRIVACY_IMAGE=myregistry/sf-privacy:dev bash scripts1/dev-start.sh
 PRIVACY_IMAGE="${PRIVACY_IMAGE:-secretflow/sf-privacy-dev:1.15.0.dev-privacy}"
 
 # PRIVACY_DOCKERFILE: 自定义 SecretFlow 镜像 Dockerfile(可选)
 #   默认使用 secretflow/docker/privacy-dev/Dockerfile.
 #   在中国大陆无法访问 Docker Hub 时,可改用 Dockerfile.anolis:
-#     PRIVACY_DOCKERFILE=Dockerfile.anolis bash scripts/dev-start.sh
+#     PRIVACY_DOCKERFILE=Dockerfile.anolis bash scripts1/dev-start.sh
 PRIVACY_DOCKERFILE="${PRIVACY_DOCKERFILE:-Dockerfile}"
 
 # KUSCIA_IMAGE: 自定义 Kuscia 镜像 tag(可选)
 #   默认使用 install-kuscia-only.sh 内部的官方镜像.
 #   在 macOS ARM64 (Apple Silicon) 上若遇到 x86_64 镜像无法运行,或需要本地二次开发 Kuscia 源码时,
-#   可先执行 bash scripts/build-kuscia-image.sh 构建本地镜像,再通过本变量指定:
-#     KUSCIA_IMAGE=secretflow/kuscia:sfwork-local bash scripts/dev-start.sh
+#   可先执行 bash scripts1/build-kuscia-image.sh 构建本地镜像,再通过本变量指定:
+#     KUSCIA_IMAGE=secretflow/kuscia:sfwork-local bash scripts1/dev-start.sh
 KUSCIA_IMAGE="${KUSCIA_IMAGE:-}"
 
 # RESET_KUSCIA: 是否在启动前重置 Kuscia 容器及其数据目录
@@ -138,7 +138,7 @@ log_step() { echo -e "${BLUE}[STEP]${NC} $*"; }
 
 # ------------------------------------------------------------------
 # 检查子项目是否已克隆
-# sfwork 根仓库只包含编排脚本与文档,子项目源码需要通过 scripts/clone-repos.sh 克隆
+# sfwork 根仓库只包含编排脚本与文档,子项目源码需要通过 scripts1/clone-repos.sh 克隆
 # ------------------------------------------------------------------
 check_cloned_repositories() {
     local missing_dirs=()
@@ -157,7 +157,7 @@ check_cloned_repositories() {
         for dir in "${missing_dirs[@]}"; do
             log_error "  - $dir"
         done
-        log_error "请先执行子项目克隆脚本:bash scripts/clone-repos.sh"
+        log_error "请先执行子项目克隆脚本:bash scripts1/clone-repos.sh"
         exit 1
     fi
 }
@@ -436,7 +436,7 @@ check_environment() {
         log_info "检测到 ARM64 宿主机架构"
         if [[ -z "$KUSCIA_IMAGE" ]]; then
             log_info "将使用官方多架构 Kuscia 镜像(默认支持 linux/arm64)"
-            log_info "若官方镜像运行异常,可先构建本地镜像:bash scripts/build-kuscia-image.sh"
+            log_info "若官方镜像运行异常,可先构建本地镜像:bash scripts1/build-kuscia-image.sh"
         else
             log_info "将使用自定义 Kuscia 镜像:$KUSCIA_IMAGE"
         fi
@@ -637,7 +637,7 @@ check_required_ports() {
 
     # 若发现任何冲突,给出清理提示并退出
     if [ "$abort" = true ]; then
-        log_error "请先释放占用端口,或执行 bash scripts/dev-stop.sh 清理残留进程"
+        log_error "请先释放占用端口,或执行 bash scripts1/dev-stop.sh 清理残留进程"
         exit 1
     fi
 }
@@ -1102,8 +1102,8 @@ print_summary() {
     echo -e "   后端:$LOG_DIR/backend.log"
     echo -e "   前端:$LOG_DIR/frontend.log"
     echo ""
-    echo -e "🛑 停止服务:${YELLOW}bash scripts/dev-stop.sh${NC}"
-    echo -e "🛑 同时停止 Kuscia:${YELLOW}bash scripts/dev-stop.sh --kuscia${NC}"
+    echo -e "🛑 停止服务:${YELLOW}bash scripts1/dev-stop.sh${NC}"
+    echo -e "🛑 同时停止 Kuscia:${YELLOW}bash scripts1/dev-stop.sh --kuscia${NC}"
     echo ""
 }
 
@@ -1136,10 +1136,10 @@ main() {
 sfwork 二次开发环境一键启动脚本(使用自定义 SecretFlow 镜像)
 
 用法:
-  bash scripts/dev-start.sh          完整启动
-  bash scripts/dev-start.sh --check  仅检查环境
-  bash scripts/dev-start.sh --reset-kuscia  重置 Kuscia 后完整启动
-  bash scripts/dev-start.sh --help          显示本帮助
+  bash scripts1/dev-start.sh          完整启动
+  bash scripts1/dev-start.sh --check  仅检查环境
+  bash scripts1/dev-start.sh --reset-kuscia  重置 Kuscia 后完整启动
+  bash scripts1/dev-start.sh --help          显示本帮助
 
 运行平台:
   - Linux / macOS 原生 Bash
@@ -1155,11 +1155,11 @@ sfwork 二次开发环境一键启动脚本(使用自定义 SecretFlow 镜像)
   DEV_START_ENV_FILE   自定义 env 文件路径(默认:<sfwork>/.env)
 
 停止服务:
-  bash scripts/dev-stop.sh
-  bash scripts/dev-stop.sh --kuscia  # 同时停止 Kuscia 容器
+  bash scripts1/dev-stop.sh
+  bash scripts1/dev-stop.sh --kuscia  # 同时停止 Kuscia 容器
 
 重置 Kuscia(自定义镜像更新后必需):
-  bash scripts/dev-start.sh --reset-kuscia
+  bash scripts1/dev-start.sh --reset-kuscia
 EOF
         exit 0
         ;;
