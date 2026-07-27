@@ -15,7 +15,7 @@
 #     1. SecretFlow 本地可编辑安装（基于 conda 环境 sf310）
 #     2. Kuscia Master 本地二进制（scripts/run_local_kuscia.sh）
 #     3. SecretPad 后端（Maven 构建的 secretpad.jar）
-#     4. SecretPad 前端（frontend-src 本地源码 + Umi dev server）
+#     4. SecretPad 前端（secretpad/web 本地源码 + Vite dev server）
 #
 # 用法：
 #   bash scripts/run-all-no-docker.sh
@@ -27,7 +27,7 @@
 #   - SecretFlow 使用 conda 环境 sf310 中的本地可编辑安装
 #   - Kuscia 使用本地编译的 kuscia 二进制
 #   - SecretPad 后端使用本地 Maven 构建的 secretpad.jar
-#   - SecretPad 前端使用 frontend-src 本地源码
+#   - SecretPad 前端使用 secretpad/web 本地源码（frontend-src 已弃用）
 #
 # 注意：
 #   - Kuscia Master 需要监听 53 / 80 等特权端口，因此脚本内部使用 sudo
@@ -512,35 +512,50 @@ generate_certs() {
 # start_secretpad_frontend
 #   功能：启动 SecretPad 前端开发服务器。
 #   说明：
-#     - 配置前端代理文件 .env，将 /api 请求转发到后端 8080 端口
+#     - 新前端基于 Vite 5，代理配置已固化在 vite.config.ts 中（默认转发 /api 到后端 8080）
 #     - 首次运行时安装前端依赖
-#     - 使用 pnpm --filter secretpad dev 启动 Umi 开发服务器
+#     - 使用 pnpm --filter @secretpad/app dev 启动 Vite 开发服务器
+#   健壮化设计：
+#     1. Vite 首次启动/冷启动时可能需要先完成依赖安装和预构建，仅检查端口监听
+#        可能端口已占但 Vite 尚未返回 HTTP 200，因此端口就绪后再用 curl 验证
+#        HTTP 200，确保浏览器可正常访问。
+#     2. 超时时间设置为 180 秒，覆盖 pnpm install + Vite 首次预构建的耗时。
+#     3. 使用 curl 的 --retry 机制作为二次确认，避免端口监听与 HTTP 就绪之间的
+#        竞态窗口导致“出错了”等误导性报错。
 start_secretpad_frontend() {
     log_step "启动 SecretPad 前端..."
     stop_service_by_pidfile "$PID_DIR/secretpad-frontend.pid" "SecretPad 前端"
 
-    # 前端代理配置文件路径
-    local env_file="$SECRETPAD_DIR/frontend-src/apps/platform/.env"
-    if [[ ! -f "$env_file" ]]; then
-        log_info "创建前端代理配置 $env_file"
-        echo "PROXY_URL=http://127.0.0.1:8080" > "$env_file"
-    elif ! grep -q '^PROXY_URL=' "$env_file" 2>/dev/null; then
-        log_info "向前端代理配置追加 PROXY_URL"
-        echo "PROXY_URL=http://127.0.0.1:8080" >> "$env_file"
-    fi
-
-    cd "$SECRETPAD_DIR/frontend-src"
+    cd "$SECRETPAD_DIR/web"
     # 通过判断 node_modules 是否存在来决定是否需要安装依赖
     if [[ ! -d "node_modules" ]]; then
         log_info "首次运行，安装前端依赖..."
-        pnpm bootstrap
+        pnpm install
     fi
 
-    # --filter secretpad 表示在 monorepo 中只启动 secretpad 应用
-    nohup pnpm --filter secretpad dev > "$LOG_DIR/frontend.log" 2>&1 &
+    # --filter @secretpad/app 表示在 monorepo 中只启动 secretpad 应用
+    nohup pnpm --filter @secretpad/app dev > "$LOG_DIR/frontend.log" 2>&1 &
     echo $! > "$PID_DIR/secretpad-frontend.pid"
-    wait_for_port 127.0.0.1 8000 120 "前端开发服务器"
-    log_info "SecretPad 前端已启动"
+
+    # 1) 等待端口监听：180 秒覆盖依赖安装 + 预构建
+    if ! wait_for_port 127.0.0.1 8000 180 "前端开发服务器"; then
+        return 1
+    fi
+
+    # 2) 等待 HTTP 200：确认 Vite 已完成初始构建并返回首页
+    log_info "等待前端 HTTP 首页可访问 ..."
+    local http_wait=30
+    local i
+    for ((i = 0; i < http_wait; i++)); do
+        if curl -fsS --max-time 2 "http://127.0.0.1:8000/" >/dev/null 2>&1; then
+            log_info "前端 HTTP 首页已就绪"
+            log_info "SecretPad 前端已启动"
+            return 0
+        fi
+        sleep 1
+    done
+    log_error "前端 HTTP 首页在 127.0.0.1:8000 未就绪，请查看 $LOG_DIR/frontend.log"
+    return 1
 }
 
 # ------------------------------------------------------------------

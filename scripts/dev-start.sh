@@ -16,7 +16,7 @@
 #   3. 部署 Kuscia Docker 环境(Master + alice + bob 三节点)
 #   4. 将上述自定义镜像注册为 Kuscia AppImage,供任务调度使用
 #   5. 编译并启动 sfwork/secretpad 后端服务(Spring Boot fat jar)
-#   6. 启动 sfwork/secretpad 前端开发服务器(Umi dev server)
+#   6. 启动 sfwork/secretpad 前端开发服务器(Vite dev server, secretpad/web)
 #
 # 设计说明:
 #   - Kuscia 代码本次未更新,因此继续使用官方 Kuscia 镜像.
@@ -148,9 +148,9 @@ check_cloned_repositories() {
             missing_dirs+=("$dir")
         fi
     done
-    # secretpad 前端源码在独立仓库,需要克隆到 secretpad/frontend-src/
-    if [[ ! -d "$SECRETPAD_DIR/frontend-src" ]]; then
-        missing_dirs+=("$SECRETPAD_DIR/frontend-src")
+    # secretpad 新前端源码位于 secretpad/web/ 目录下
+    if [[ ! -d "$SECRETPAD_DIR/web" ]]; then
+        missing_dirs+=("$SECRETPAD_DIR/web")
     fi
     if (( ${#missing_dirs[@]} > 0 )); then
         log_error "以下子项目目录不存在:"
@@ -365,19 +365,20 @@ check_environment() {
         exit 1
     fi
 
-    # pnpm 检测:通过 Node.js 内置的 corepack 管理,版本锁定为 8.8.0
+    # pnpm 检测:通过 Node.js 内置的 corepack 管理,由 secretpad/web/package.json 中的
+    # packageManager 字段指定版本,当前要求 >= 8.8.0
     if command_exists corepack; then
         local pnpm_ver
         pnpm_ver="$(get_pnpm_version)"
-        if [ "$pnpm_ver" = "8.8.0" ]; then
+        if version_ge "$pnpm_ver" "8.8.0"; then
             log_info "pnpm $pnpm_ver(通过 corepack)已满足要求"
         else
-            log_warn "正在通过 corepack 安装 pnpm@8.8.0 ..."
-            # 在 frontend-src 目录下执行,读取 package.json 中的 packageManager 配置
-            (cd "$SECRETPAD_DIR/frontend-src" && corepack install)
+            log_warn "正在通过 corepack 安装 pnpm ..."
+            # 在 web 目录下执行,读取 package.json 中的 packageManager 配置
+            (cd "$SECRETPAD_DIR/web" && corepack install)
         fi
     else
-        log_error "未找到 corepack,请升级 Node.js 到 16.10+ 或手动安装 pnpm 8.8.0"
+        log_error "未找到 corepack,请升级 Node.js 到 16.10+ 或手动安装 pnpm >= 8.8.0"
         exit 1
     fi
 
@@ -1027,8 +1028,15 @@ start_backend() {
 # start_frontend
 #   功能:启动 SecretPad 前端开发服务器.
 #   说明:
-#     - 前端通过 .env 文件中的 PROXY_URL 将 /api 请求转发到后端 8080 端口
-#     - 首次运行时会执行 pnpm bootstrap 安装依赖并构建 workspace 内部包
+#     - 新前端基于 Vite 5,代理配置已固化在 vite.config.ts 中(默认转发 /api 到 8080)
+#     - 首次运行时会执行 pnpm install 安装依赖
+#   健壮化设计:
+#     1. Vite 首次启动/冷启动时可能需要先完成依赖安装和预构建,仅检查端口监听
+#        可能端口已占但 Vite 尚未返回 HTTP 200,因此端口就绪后再用 curl 验证
+#        HTTP 200,确保浏览器可正常访问。
+#     2. 超时时间设置为 180 秒,覆盖 pnpm install + Vite 首次预构建的耗时。
+#     3. 使用 curl 的 --retry 机制作为二次确认,避免端口监听与 HTTP 就绪之间的
+#        竞态窗口导致"出错了"等误导性报错。
 start_frontend() {
     log_step "启动 SecretPad 前端 ..."
     local pidfile="$LOG_DIR/frontend.pid"
@@ -1039,43 +1047,39 @@ start_frontend() {
     fi
     stop_service_by_pidfile "$pidfile" "frontend"
 
-    # 确保前端代理配置指向本地后端 HTTP 端口
-    # 无论 sfwork 在哪个目录,代理地址始终为 http://127.0.0.1:8080
-    local env_file="$SECRETPAD_DIR/frontend-src/apps/platform/.env"
-    mkdir -p "$(dirname "$env_file")"
-
-    # 如果文件不存在或没有 PROXY_URL 配置,则创建/更新
-    if [ ! -f "$env_file" ]; then
-        printf 'PROXY_URL=http://127.0.0.1:8080\n' > "$env_file"
-        log_info "已创建前端代理配置文件:$env_file"
-    elif ! grep -q '^PROXY_URL=' "$env_file" 2>/dev/null; then
-        printf 'PROXY_URL=http://127.0.0.1:8080\n' >> "$env_file"
-        log_info "已添加前端代理配置到:$env_file"
-    else
-        # 文件存在且已有 PROXY_URL,检查是否正确
-        local current_proxy
-        current_proxy=$(grep '^PROXY_URL=' "$env_file" | head -1 | cut -d'=' -f2-)
-        if [ "$current_proxy" != "http://127.0.0.1:8080" ]; then
-            log_warn "检测到前端代理配置为 $current_proxy,将更新为 http://127.0.0.1:8080"
-            sed_i 's|^PROXY_URL=.*|PROXY_URL=http://127.0.0.1:8080|' "$env_file"
-        fi
-    fi
-
-    cd "$SECRETPAD_DIR/frontend-src"
-    # 首次运行时安装依赖并构建 workspace 内部包
+    cd "$SECRETPAD_DIR/web"
+    # 首次运行时安装依赖
     if [ ! -d "node_modules" ]; then
         log_info "首次运行,安装前端依赖 ..."
-        corepack pnpm bootstrap
+        corepack pnpm install
     fi
 
-    # --filter secretpad: 在 monorepo 中仅启动 secretpad 应用
-    nohup corepack pnpm --filter secretpad dev > "$LOG_DIR/frontend.log" 2>&1 &
+    # --filter @secretpad/app: 在 monorepo 中仅启动 secretpad 应用
+    nohup corepack pnpm --filter @secretpad/app dev > "$LOG_DIR/frontend.log" 2>&1 &
     echo $! > "$pidfile"
     # disown 将作业从 shell 作业表中移除,避免脚本退出时进程被回收.
     # Windows Git Bash 可能不支持 disown,因此忽略失败.
     disown $! 2>/dev/null || true
     log_info "前端进程已启动,pid $!"
-    wait_for_port 127.0.0.1 8000 120 "前端开发服务器"
+
+    # 1) 等待端口监听:180 秒覆盖依赖安装+预构建
+    if ! wait_for_port 127.0.0.1 8000 180 "前端开发服务器"; then
+        return 1
+    fi
+
+    # 2) 等待 HTTP 200:确认 Vite 已完成初始构建并返回首页,而非仅 bind 端口
+    log_info "等待前端 HTTP 首页可访问 ..."
+    local http_wait=30
+    local i
+    for ((i = 0; i < http_wait; i++)); do
+        if curl -fsS --max-time 2 "http://127.0.0.1:8000/" >/dev/null 2>&1; then
+            log_info "前端 HTTP 首页已就绪"
+            return 0
+        fi
+        sleep 1
+    done
+    log_error "前端 HTTP 首页在 127.0.0.1:8000 未就绪,请查看 $LOG_DIR/frontend.log"
+    return 1
 }
 
 # print_summary

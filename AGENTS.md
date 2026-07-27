@@ -20,7 +20,7 @@ This guide describes the `sfwork` workspace for AI coding agents. The workspace 
 | **SecretPad** | Java (Spring Boot) | Web management console backend | `secretpad/` |
 | **SecretPad Frontend** | TypeScript / React | Web management console UI | `secretpad/web/` |
 
-There is also a legacy copy of the frontend at `secretpad/frontend-src/` and `secretpad-frontend/`, but active development happens in `secretpad/web/`.
+There is also a legacy copy of the frontend at `secretpad/frontend-src/` and `secretpad-frontend/`, but it has been deprecated and removed; active development happens in `secretpad/web/`.
 
 ### 1.1 Local Privacy SDKs / Agent
 
@@ -37,7 +37,7 @@ Clone them next to the `sfwork` root directory when needed; they are ignored by 
 ### How the pieces fit together
 
 ```text
-SecretPad Frontend (React/Umi, port 8000 dev)
+SecretPad Frontend (React/Vite, port 8000 dev)
         │  REST /api/v1alpha1/*
         ▼
 SecretPad Backend (Spring Boot, ports 8080/8443/9001)
@@ -94,7 +94,7 @@ The detailed whitepaper and presentation are in `docs/doc-center/00-项目总览
 ├── kuscia/                       # Go orchestration engine
 ├── secretflow/                   # Python privacy-preserving ML framework
 ├── secretpad/                    # Java backend + web frontend
-├── secretpad-frontend/           # legacy frontend copy (inactive)
+├── secretpad-frontend/           # deprecated legacy frontend copy (removed)
 ├── privacy-java-sdk/             # Java local privacy SDK
 ├── privacy-go-sdk/               # Go local privacy SDK
 └── privacy-local-agent/          # Python REST/gRPC privacy agent
