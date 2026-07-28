@@ -382,10 +382,10 @@ sequenceDiagram
 
 ### 6.3 Go 项目工程目录结构 (Project Layout)
 
-基于 Go 社区标准项目布局与 DDD 分层规范，`secretpad-go` 的完整工程目录结构设计如下：
+基于 Go 社区标准项目布局与 DDD 分层规范，`privahub` 的完整工程目录结构设计如下：
 
 ```
-secretpad-go/
+privahub/
 ├── cmd/                              # 可执行入口
 │   ├── server/                       # 主服务入口 (Master/Lite/Autonomy 多模式)
 │   │   └── main.go
@@ -2043,12 +2043,12 @@ observability:
 * **业务收益**：优先解决 Lite 侧 80% 以上私有化边缘节点的内存消耗痛点（RSS 从 800MB 剧降至 20MB），Center 端保持 Java 稳定运行。
 
 #### 2. 阶段二：中心 Core 服务 Go 重构与灰度双轨 (Phase 2: Core Refactoring)
-* **核心目标**：在 Master/Center 端使用 Go 实现完整控制面服务 (`secretpad-go`)，与旧 Java 后端并行部署。
+* **核心目标**：在 Master/Center 端使用 Go 实现完整控制面服务 (`privahub`)，与旧 Java 后端并行部署。
 * **业务职责**：完全复刻 DAG 图转化引擎、项目管理、协同投票状态机、DataMesh 代理。
 * **双轨机制**：通过统一网关（如 Nginx / APISix）基于 HTTP Header / 机构 ID 进行按比例灰度切流（例如：5% -> 20% -> 50% -> 100%）。
 
 #### 3. 阶段三：全量切流与 Java 模块停用归档 (Phase 3: Complete Cutover)
-* **核心目标**：经过长稳回归测试验证后，全量切换路由至 `secretpad-go`，停止并下线 Java 后端容器。
+* **核心目标**：经过长稳回归测试验证后，全量切换路由至 `privahub`，停止并下线 Java 后端容器。
 * **工程归档**：将原 Maven 多模块代码库标注为 `deprecated-java-backend` 并归档，全局切入 Go 构建流水线。
 
 ---
@@ -2233,7 +2233,7 @@ func (r *DataReconciler) autoRepairRecord(ctx context.Context, table string, id 
 
 #### 11.4.1 切流判定门槛指标 (Cutover Criteria Matrix)
 
-在进行网关权重切流前，`secretpad-go` 必须满足以下死指标线：
+在进行网关权重切流前，`privahub` 必须满足以下死指标线：
 
 | 评估指标 | 门槛要求 | 监控观察周期 |
 | :--- | :--- | :--- |

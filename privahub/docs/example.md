@@ -8,13 +8,13 @@
 # 构建
 cd privahub
 mkdir -p .tmp
-TMPDIR=$(pwd)/.tmp CGO_ENABLED=1 go build -o bin/secretpad-go ./cmd/server
+TMPDIR=$(pwd)/.tmp CGO_ENABLED=1 go build -o bin/privahub ./cmd/server
 
 # 使用开发配置启动
-SECRETPAD_PROFILE=dev ./bin/secretpad-go
+SECRETPAD_PROFILE=dev ./bin/privahub
 
 # 或直接使用默认配置
-./bin/secretpad-go
+./bin/privahub
 ```
 
 ### 1.2 验证服务

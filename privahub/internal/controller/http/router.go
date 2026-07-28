@@ -9,12 +9,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/secretflow/secretpad-go/internal/controller/http/middleware"
-	v1 "github.com/secretflow/secretpad-go/internal/controller/http/v1"
-	"github.com/secretflow/secretpad-go/internal/service"
-	"github.com/secretflow/secretpad-go/internal/wire"
-	"github.com/secretflow/secretpad-go/pkg/errcode"
-	"github.com/secretflow/secretpad-go/pkg/response"
+	"github.com/fengzhizi319/privahub/internal/controller/http/middleware"
+	v1 "github.com/fengzhizi319/privahub/internal/controller/http/v1"
+	"github.com/fengzhizi319/privahub/internal/service"
+	"github.com/fengzhizi319/privahub/internal/wire"
+	"github.com/fengzhizi319/privahub/pkg/errcode"
+	"github.com/fengzhizi319/privahub/pkg/response"
 	"go.uber.org/zap"
 )
 

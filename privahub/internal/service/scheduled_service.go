@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
-	"github.com/secretflow/secretpad-go/internal/dao/model"
+	"github.com/fengzhizi319/privahub/internal/dao/model"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )

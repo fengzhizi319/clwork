@@ -4,7 +4,7 @@ package dao
 import (
 	"fmt"
 
-	"github.com/secretflow/secretpad-go/pkg/config"
+	"github.com/fengzhizi319/privahub/pkg/config"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"

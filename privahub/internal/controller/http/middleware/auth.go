@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/secretflow/secretpad-go/pkg/auth"
+	"github.com/fengzhizi319/privahub/pkg/auth"
 )
 
 // JWTAuth creates a middleware that validates JWT tokens.

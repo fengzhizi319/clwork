@@ -5,12 +5,12 @@
 # ============================================================================
 #
 # 功能概述：
-#   本脚本用于停止由 scripts/dev-start.sh 启动的本地开发环境。
+#   本脚本用于停止由 scripts1/dev-start.sh 启动的本地开发环境。
 #   默认只停止 SecretPad 后端和前端进程；传入 --kuscia 时额外停止 Kuscia 容器。
 #
 # 用法：
-#   bash scripts/dev-stop.sh           # 停止后端和前端
-#   bash scripts/dev-stop.sh --kuscia  # 同时停止 Kuscia 容器
+#   bash scripts1/dev-stop.sh           # 停止后端和前端
+#   bash scripts1/dev-stop.sh --kuscia  # 同时停止 Kuscia 容器
 #
 # 运行平台：
 #   - Linux / macOS 原生 Bash

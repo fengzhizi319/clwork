@@ -33,23 +33,23 @@ make build
 
 # 或使用 go build
 mkdir -p .tmp
-TMPDIR=$(pwd)/.tmp CGO_ENABLED=1 go build -o bin/secretpad-go ./cmd/server
+TMPDIR=$(pwd)/.tmp CGO_ENABLED=1 go build -o bin/privahub ./cmd/server
 ```
 
 ### 2.2 交叉编译
 
 ```bash
 # Linux AMD64
-GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -o bin/secretpad-go-linux ./cmd/server
+GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -o bin/privahub-linux ./cmd/server
 
 # Linux ARM64
-GOOS=linux GOARCH=arm64 CGO_ENABLED=1 go build -o bin/secretpad-go-linux-arm64 ./cmd/server
+GOOS=linux GOARCH=arm64 CGO_ENABLED=1 go build -o bin/privahub-linux-arm64 ./cmd/server
 ```
 
 ### 2.3 Docker 构建
 
 ```bash
-docker build -t secretpad-go:latest -f deployments/docker/Dockerfile .
+docker build -t privahub:latest -f deployments/docker/Dockerfile .
 ```
 
 ## 3. 配置
@@ -125,10 +125,10 @@ export SECRETPAD_DATABASE_DSN="user:pass@tcp(localhost:3306)/secretpad"
 
 ```bash
 # 开发环境
-SECRETPAD_PROFILE=dev ./secretpad-go
+SECRETPAD_PROFILE=dev ./privahub
 
 # 边缘节点
-SECRETPAD_PROFILE=edge NODE_ID=edge-node ./secretpad-go
+SECRETPAD_PROFILE=edge NODE_ID=edge-node ./privahub
 ```
 
 ## 4. 部署
@@ -144,24 +144,24 @@ cp config/secretpad.yaml config/secretpad-local.yaml
 # 编辑配置...
 
 # 3. 运行
-./bin/secretpad-go -c config/secretpad-local.yaml
+./bin/privahub -c config/secretpad-local.yaml
 ```
 
 ### 4.2 Docker 部署
 
 ```bash
 # 构建镜像
-docker build -t secretpad-go:latest .
+docker build -t privahub:latest .
 
 # 运行容器
 docker run -d \
-  --name secretpad-go \
+  --name privahub \
   -p 8080:8080 \
   -p 9001:9001 \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/config:/app/config \
   -e SECRETPAD_PROFILE=dev \
-  secretpad-go:latest
+  privahub:latest
 ```
 
 ### 4.3 Docker Compose 部署
@@ -170,7 +170,7 @@ docker run -d \
 version: '3.8'
 
 services:
-  secretpad-go:
+  privahub:
     build: .
     ports:
       - "8080:8080"
@@ -197,20 +197,20 @@ services:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: secretpad-go
+  name: privahub
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: secretpad-go
+      app: privahub
   template:
     metadata:
       labels:
-        app: secretpad-go
+        app: privahub
     spec:
       containers:
-      - name: secretpad-go
-        image: secretpad-go:latest
+      - name: privahub
+        image: privahub:latest
         ports:
         - containerPort: 8080
         - containerPort: 9001
@@ -240,10 +240,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: secretpad-go
+  name: privahub
 spec:
   selector:
-    app: secretpad-go
+    app: privahub
   ports:
   - name: http
     port: 8080
@@ -322,7 +322,7 @@ mysql -u user -p secretpad < backups/secretpad-20240101.sql
 
 ```bash
 # 开启 debug 日志
-SECRETPAD_OBSERVABILITY_LOG_LEVEL=debug ./secretpad-go
+SECRETPAD_OBSERVABILITY_LOG_LEVEL=debug ./privahub
 
 # 查看请求日志
 tail -f logs/secretpad.log | grep "audit"
@@ -388,10 +388,10 @@ make build
 sqlite3 secretpad.db ".backup backups/pre-upgrade.db"
 
 # 3. 停止旧版本
-pkill -f secretpad-go
+pkill -f privahub
 
 # 4. 启动新版本
-./bin/secretpad-go &
+./bin/privahub &
 
 # 5. 验证
 curl http://localhost:8080/api/v1alpha1/healthz

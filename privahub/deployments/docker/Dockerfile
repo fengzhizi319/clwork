@@ -16,7 +16,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -ldflags="-s -w -X main.version=$(git describe --tags --always 2>/dev/null || echo dev)" \
-    -o /secretpad-go ./cmd/server
+    -o /privahub ./cmd/server
 
 # Stage 2: Runtime
 FROM alpine:3.20
@@ -24,7 +24,7 @@ FROM alpine:3.20
 RUN apk add --no-cache ca-certificates tzdata \
     && adduser -D -u 1000 secretpad
 
-COPY --from=builder /secretpad-go /usr/local/bin/secretpad-go
+COPY --from=builder /privahub /usr/local/bin/privahub
 COPY config/secretpad.yaml /etc/secretpad/secretpad.yaml
 
 USER secretpad
@@ -33,5 +33,5 @@ EXPOSE 8080 9090 9091
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
     CMD wget -qO- http://localhost:8080/api/v1alpha1/healthz || exit 1
 
-ENTRYPOINT ["secretpad-go"]
+ENTRYPOINT ["privahub"]
 CMD ["-config", "/etc/secretpad/secretpad.yaml"]

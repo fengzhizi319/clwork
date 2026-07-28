@@ -11,12 +11,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	controllerhttp "github.com/secretflow/secretpad-go/internal/controller/http"
-	"github.com/secretflow/secretpad-go/internal/dao"
-	migration "github.com/secretflow/secretpad-go/internal/dao/migrations"
-	"github.com/secretflow/secretpad-go/internal/wire"
-	"github.com/secretflow/secretpad-go/pkg/config"
-	"github.com/secretflow/secretpad-go/pkg/logger"
+	controllerhttp "github.com/fengzhizi319/privahub/internal/controller/http"
+	"github.com/fengzhizi319/privahub/internal/dao"
+	migration "github.com/fengzhizi319/privahub/internal/dao/migrations"
+	"github.com/fengzhizi319/privahub/internal/wire"
+	"github.com/fengzhizi319/privahub/pkg/config"
+	"github.com/fengzhizi319/privahub/pkg/logger"
 	"go.uber.org/zap"
 )
 

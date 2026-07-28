@@ -10,8 +10,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/secretflow/secretpad-go/pkg/logger"
-	"github.com/secretflow/secretpad-go/pkg/metrics"
+	"github.com/fengzhizi319/privahub/pkg/logger"
+	"github.com/fengzhizi319/privahub/pkg/metrics"
 	"go.uber.org/zap"
 )
 

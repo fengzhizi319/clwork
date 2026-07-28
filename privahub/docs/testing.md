@@ -326,7 +326,7 @@ jobs:
         go-version: '1.22'
     - name: Run tests
       run: |
-        cd secretflowpad-go
+        cd privahub
         CGO_ENABLED=1 go test ./... -v -coverprofile=coverage.out
     - name: Upload coverage
       uses: codecov/codecov-action@v4

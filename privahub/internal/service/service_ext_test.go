@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/secretflow/secretpad-go/internal/dao/model"
-	"github.com/secretflow/secretpad-go/internal/dao/repository"
+	"github.com/fengzhizi319/privahub/internal/dao/model"
+	"github.com/fengzhizi319/privahub/internal/dao/repository"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )

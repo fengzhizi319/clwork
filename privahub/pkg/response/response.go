@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/secretflow/secretpad-go/pkg/errcode"
+	"github.com/fengzhizi319/privahub/pkg/errcode"
 )
 
 // Body is the standard API response envelope matching Java SecretPad format.

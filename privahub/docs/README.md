@@ -33,20 +33,20 @@ SecretPad 后端的 Go 语言重构实现，基于 Gin + GORM 构建，完整迁
 make build
 
 # 或使用 go build
-CGO_ENABLED=1 go build -o bin/secretpad-go ./cmd/server
+CGO_ENABLED=1 go build -o bin/privahub ./cmd/server
 ```
 
 ### 运行
 
 ```bash
 # 默认配置
-./bin/secretpad-go
+./bin/privahub
 
 # 开发环境 profile
-SECRETPAD_PROFILE=dev ./bin/secretpad-go
+SECRETPAD_PROFILE=dev ./bin/privahub
 
 # 边缘节点 profile
-SECRETPAD_PROFILE=edge NODE_ID=edge-node ./bin/secretpad-go
+SECRETPAD_PROFILE=edge NODE_ID=edge-node ./bin/privahub
 ```
 
 ### 测试
@@ -62,7 +62,7 @@ CGO_ENABLED=1 go test ./... -v
 ## 项目结构
 
 ```
-secretflowpad-go/
+privahub/
 ├── cmd/
 │   ├── server/          # 主服务入口
 │   ├── edge-agent/      # 边缘代理

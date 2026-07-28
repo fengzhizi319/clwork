@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/secretflow/secretpad-go/internal/dao/model"
+	"github.com/fengzhizi319/privahub/internal/dao/model"
 	"gorm.io/gorm"
 )
 

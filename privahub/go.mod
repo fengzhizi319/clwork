@@ -1,4 +1,4 @@
-module github.com/secretflow/secretpad-go
+module github.com/fengzhizi319/privahub
 
 go 1.25.0
 

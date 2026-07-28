@@ -21,7 +21,7 @@ linters:
 
 linters-settings:
   goimports:
-    local-prefixes: github.com/secretflow/secretpad-go
+    local-prefixes: github.com/fengzhizi319/privahub
   gosec:
     excludes:
       - G101 # Look for hard coded credentials (false positives on config)

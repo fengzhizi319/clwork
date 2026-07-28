@@ -49,7 +49,7 @@ SecretPad-Go 是隐私计算平台 SecretPad 后端的 Go 语言实现，完整�
 ## 3. 目录结构
 
 ```
-secretflowpad-go/
+privahub/
 ├── cmd/                          # 可执行入口
 │   ├── server/main.go            # 主服务 (HTTP + Inner Port)
 │   ├── edge-agent/main.go        # 边缘代理
@@ -267,13 +267,13 @@ if err := kusciaClient.CreateDomain(ctx, req); err != nil {
 
 ```bash
 # 基础配置
-./secretpad-go
+./privahub
 
 # 开发环境
-SECRETPAD_PROFILE=dev ./secretpad-go
+SECRETPAD_PROFILE=dev ./privahub
 
 # 边缘节点
-SECRETPAD_PROFILE=edge ./secretpad-go
+SECRETPAD_PROFILE=edge ./privahub
 ```
 
 ### 7.2 环境变量覆盖

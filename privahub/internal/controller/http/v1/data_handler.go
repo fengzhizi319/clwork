@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
-	"github.com/secretflow/secretpad-go/internal/dao/model"
-	"github.com/secretflow/secretpad-go/pkg/errcode"
-	"github.com/secretflow/secretpad-go/pkg/kuscia"
-	"github.com/secretflow/secretpad-go/pkg/response"
+	"github.com/fengzhizi319/privahub/internal/dao/model"
+	"github.com/fengzhizi319/privahub/pkg/errcode"
+	"github.com/fengzhizi319/privahub/pkg/kuscia"
+	"github.com/fengzhizi319/privahub/pkg/response"
 	"gorm.io/gorm"
 )
 

@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/secretflow/secretpad-go/internal/controller/http/middleware"
-	v1 "github.com/secretflow/secretpad-go/internal/controller/http/v1"
-	"github.com/secretflow/secretpad-go/internal/dao/repository"
-	"github.com/secretflow/secretpad-go/internal/service"
-	"github.com/secretflow/secretpad-go/pkg/auth"
-	"github.com/secretflow/secretpad-go/pkg/config"
-	"github.com/secretflow/secretpad-go/pkg/kuscia"
+	"github.com/fengzhizi319/privahub/internal/controller/http/middleware"
+	v1 "github.com/fengzhizi319/privahub/internal/controller/http/v1"
+	"github.com/fengzhizi319/privahub/internal/dao/repository"
+	"github.com/fengzhizi319/privahub/internal/service"
+	"github.com/fengzhizi319/privahub/pkg/auth"
+	"github.com/fengzhizi319/privahub/pkg/config"
+	"github.com/fengzhizi319/privahub/pkg/kuscia"
 	"gorm.io/gorm"
 )
 

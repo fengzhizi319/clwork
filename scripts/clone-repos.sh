@@ -9,7 +9,7 @@
 #   当前 sfwork 根仓库只管理文档、配置和编排脚本；四大子项目及本地隐私 SDK/Agent 作为独立 git 仓库存在。
 #
 # 默认克隆的子项目：
-#   - secretpad             -> ./secretpad/           （SecretPad 后端 + 新前端 secretpad/web/）
+#   - secretpad             -> ./secretpad/           （SecretPad 后端 + 新前端 web/）
 #   - kuscia                -> ./kuscia/
 #   - secretflow            -> ./secretflow/
 #   - privacy-java-sdk      -> ./privacy-java-sdk/
@@ -17,7 +17,7 @@
 #   - privacy-local-agent   -> ./privacy-local-agent/
 #
 # 说明：
-#   - secretpad 仓库已同时包含后端源码和新前端源码（secretpad/web/），
+#   - secretpad 仓库现在同时包含后端源码和新前端源码（secretpad/web/），
 #     不再需要从独立的 secretpad-frontend 仓库克隆 frontend-src/。
 #   - 如果目标目录已存在且是 git 仓库，脚本会执行 git pull 并切换到指定分支。
 #   - 如果目标目录已存在但不是一个 git 仓库，脚本会跳过并给出警告。
@@ -30,12 +30,14 @@
 #
 # 环境变量（均可选）：
 #   SECRETPAD_REPO             secretpad 仓库地址（默认：https://github.com/fengzhizi319/secretpad.git）
+#   SECRETPAD_FRONTEND_REPO    secretpad-frontend 仓库地址（默认：https://github.com/fengzhizi319/secretpad-frontend.git）
 #   KUSCIA_REPO                kuscia 仓库地址（默认：https://github.com/fengzhizi319/kuscia.git）
 #   SECRETFLOW_REPO            secretflow 仓库地址（默认：https://github.com/fengzhizi319/secretflow.git）
 #   PRIVACY_JAVA_REPO          privacy-java-sdk 仓库地址（默认：https://github.com/fengzhizi319/privacy-java-sdk.git）
 #   PRIVACY_GO_REPO            privacy-go-sdk 仓库地址（默认：https://github.com/fengzhizi319/privacy-go-sdk.git）
 #   PRIVACY_LOCAL_AGENT_REPO   privacy-local-agent 仓库地址（默认：https://github.com/fengzhizi319/privacy-local-agent.git）
 #   SECRETPAD_BRANCH           secretpad 分支（默认：main）
+#   SECRETPAD_FRONTEND_BRANCH  secretpad-frontend 分支（默认：main）
 #   KUSCIA_BRANCH              kuscia 分支（默认：main）
 #   SECRETFLOW_BRANCH          secretflow 分支（默认：main）
 #   PRIVACY_JAVA_BRANCH        privacy-java-sdk 分支（默认：main）
@@ -159,6 +161,7 @@ fi
 # 仓库地址：优先读取环境变量，若未设置则使用上面根据协议拼接的默认地址。
 # ${VAR:-default} 表示 VAR 为空或未定义时使用 default。
 SECRETPAD_REPO="${SECRETPAD_REPO:-${BASE_URL}/secretpad.git}"
+SECRETPAD_FRONTEND_REPO="${SECRETPAD_FRONTEND_REPO:-${BASE_URL}/secretpad-frontend.git}"
 KUSCIA_REPO="${KUSCIA_REPO:-${BASE_URL}/kuscia.git}"
 SECRETFLOW_REPO="${SECRETFLOW_REPO:-${BASE_URL}/secretflow.git}"
 PRIVACY_JAVA_REPO="${PRIVACY_JAVA_REPO:-${BASE_URL}/privacy-java-sdk.git}"
@@ -167,6 +170,7 @@ PRIVACY_LOCAL_AGENT_REPO="${PRIVACY_LOCAL_AGENT_REPO:-${BASE_URL}/privacy-local-
 
 # 分支名：同样支持环境变量覆盖。
 SECRETPAD_BRANCH="${SECRETPAD_BRANCH:-main}"
+SECRETPAD_FRONTEND_BRANCH="${SECRETPAD_FRONTEND_BRANCH:-main}"
 KUSCIA_BRANCH="${KUSCIA_BRANCH:-main}"
 SECRETFLOW_BRANCH="${SECRETFLOW_BRANCH:-main}"
 PRIVACY_JAVA_BRANCH="${PRIVACY_JAVA_BRANCH:-main}"
@@ -282,8 +286,12 @@ process_repo() {
 
 process_repo "$SECRETPAD_REPO"           "$SFWORK_ROOT/secretpad"                  "$SECRETPAD_BRANCH"
 
-# secretpad 新前端源码已内置在 secretpad/web/ 目录，无需再克隆独立前端仓库。
-# 旧前端 frontend-src/ 已弃用，可在 clone 完成后安全删除（如仍存在）。
+# 注意：新前端已内置于 secretpad/web/ 目录，随 secretpad 仓库一起克隆，
+# 不再需要从独立的 secretpad-frontend 仓库克隆到 frontend-src/。
+if [ ! -d "$SFWORK_ROOT/secretpad/.git" ]; then
+    log_error "secretpad 不是有效的 git 仓库，请检查 secretpad 是否克隆成功"
+    FAILED_COUNT=$((FAILED_COUNT + 1))
+fi
 
 process_repo "$KUSCIA_REPO"              "$SFWORK_ROOT/kuscia"                     "$KUSCIA_BRANCH"
 process_repo "$SECRETFLOW_REPO"          "$SFWORK_ROOT/secretflow"          "$SECRETFLOW_BRANCH"

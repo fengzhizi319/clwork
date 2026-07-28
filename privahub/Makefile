@@ -1,7 +1,7 @@
 .PHONY: build run test lint clean docker wire tidy
 
 # Build variables
-APP_NAME := secretpad-go
+APP_NAME := privahub
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_TIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')

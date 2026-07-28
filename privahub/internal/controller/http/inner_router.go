@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/secretflow/secretpad-go/internal/controller/http/middleware"
-	"github.com/secretflow/secretpad-go/internal/wire"
+	"github.com/fengzhizi319/privahub/internal/controller/http/middleware"
+	"github.com/fengzhizi319/privahub/internal/wire"
 	"go.uber.org/zap"
 )
 

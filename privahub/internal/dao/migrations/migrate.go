@@ -6,7 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 
-	"github.com/secretflow/secretpad-go/internal/dao/model"
+	"github.com/fengzhizi319/privahub/internal/dao/model"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )

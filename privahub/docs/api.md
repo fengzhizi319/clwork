@@ -715,7 +715,7 @@ SSE 实时数据同步端点。
   "status": {"code": 0, "msg": "success"},
   "data": {
     "status": "healthy",
-    "service": "secretpad-go"
+    "service": "privahub"
   }
 }
 ```
