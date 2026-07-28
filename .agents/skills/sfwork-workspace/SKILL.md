@@ -5,7 +5,7 @@ description: Work in the sfwork mono-repo workspace containing Kuscia, SecretFlo
 
 # SFWork Workspace
 
-The sfwork workspace bundles four main projects: Kuscia (Go), SecretFlow (Python), SecretPad backend (Java/Spring Boot), and SecretPad frontend (TypeScript/React/Umi).
+The sfwork workspace bundles four main projects: Kuscia (Go), SecretFlow (Python), SecretPad backend (Java/Spring Boot), and SecretPad frontend (TypeScript/React/Vite).
 
 ## Workspace Layout
 
@@ -13,13 +13,14 @@ The sfwork workspace bundles four main projects: Kuscia (Go), SecretFlow (Python
 sfwork/
 ├── kuscia/                 # Go orchestration engine
 ├── secretflow/             # Python privacy-preserving ML framework
-├── secretpad/              # Java backend + frontend-src
-├── secretpad-frontend/     # Legacy frontend copy (inactive)
+├── secretpad/              # Java backend + web/ frontend (active)
+├── secretflowpad-go/       # Go backend (experimental / separate, not started by dev-start.sh)
 ├── privacy-java-sdk/       # Java local privacy SDK
 ├── privacy-go-sdk/         # Go local privacy SDK
 ├── privacy-local-agent/    # Python REST/gRPC privacy agent
 ├── deploy/                 # Docker Compose deployment
 ├── scripts/                # Dev scripts (run-all-no-docker.sh, etc.)
+├── scripts1/               # Secondary copy of dev scripts
 ├── docs/doc-center/        # Centralized documentation archive
 └── AGENTS.md               # Agent guide for this workspace
 ```
@@ -27,7 +28,7 @@ sfwork/
 ## Critical Environment
 
 - **Python**: conda env `sf310`, Python 3.10
-- **Node.js**: v22.22.1, pnpm 8.8.0
+- **Node.js**: >= 18.0.0, pnpm >= 8.8.0
 - **Java**: 17
 - **Go**: 1.24.7
 - **Frontend dev**: `http://localhost:8000`
@@ -39,10 +40,19 @@ sfwork/
 ## Key Commands
 
 ```bash
+# Start Docker-Kuscia + local SecretPad backend/frontend
+bash scripts1/dev-start.sh
+
+# Stop local services (Java backend + Vite frontend)
+bash scripts1/dev-stop.sh
+
+# Stop local services + Kuscia Docker
+bash scripts1/dev-stop.sh --kuscia
+
 # Run all locally (non-Docker)
 bash scripts/run-all-no-docker.sh
 
-# Stop all
+# Stop all (non-Docker)
 bash scripts/run-all-no-docker.sh --stop
 
 # Build Kuscia
@@ -54,16 +64,22 @@ cd secretflow && pip install -e .
 # Build SecretPad backend
 cd secretpad && mvn clean package -DskipTests
 
-# Bootstrap frontend
-cd secretpad/frontend-src && pnpm bootstrap
+# Install frontend dependencies
+cd secretpad/web && corepack pnpm install
 
 # Dev frontend
-cd secretpad/frontend-src && pnpm --filter secretpad dev
+cd secretpad/web && corepack pnpm --filter @secretpad/app dev
 ```
+
+## Port Conflict Notes
+
+- `scripts1/dev-start.sh` starts the Java SecretPad backend on port 8080 and the Vite dev server on port 8000.
+- If `secretflowpad-go/bin/secretpad-go` or another process is already listening on 8080, the script will fail with "端口 8080 被其他进程占用". Kill the conflicting process before starting.
+- Use `lsof -i :8080` and `lsof -i :8000` to identify conflicting processes.
 
 ## Cross-Project Contracts
 
-- **Frontend ↔ Backend**: REST JSON under `/api/v1alpha1/*`
+- **Frontend ↔ Backend**: REST JSON under `/api/v1alpha1/*` (plus `/api/login`, `/api/logout`)
 - **Backend ↔ Kuscia**: gRPC via `secretpad-api/client-java-kusciaapi`
 - **Kuscia ↔ SecretFlow**: Kuscia schedules containers; SecretFlow reads DomainData via DataMesh
 - **DataMesh ↔ SecretFlow**: gRPC + Apache Arrow Flight

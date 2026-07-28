@@ -271,6 +271,50 @@ get_node_version() { node -v 2>/dev/null | sed 's/^v//'; }
 get_pnpm_version() { corepack pnpm -v 2>/dev/null || true; }
 get_docker_version() { docker --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1; }
 
+# get_web_package_manager_pnpm_version
+#   功能:读取 secretpad/web/package.json 中 packageManager 字段指定的 pnpm 版本.
+#   输出:pnpm 版本号(如 9.15.5),若未指定或解析失败则输出空字符串.
+get_web_package_manager_pnpm_version() {
+    local pkg_json="$SECRETPAD_DIR/web/package.json"
+    if [[ -f "$pkg_json" ]]; then
+        # 解析 "packageManager": "pnpm@x.y.z+sha..." 中的版本号
+        grep -oE '"packageManager"[[:space:]]*:[[:space:]]*"pnpm@[^"]+"' "$pkg_json" 2>/dev/null \
+            | grep -oE 'pnpm@[0-9]+(\.[0-9]+)*' | head -1 | sed 's/pnpm@//'
+    fi
+}
+
+# check_pnpm_node_compatibility
+#   功能:检查 package.json 中指定的 pnpm 版本是否与当前 Node.js 版本兼容.
+#   参数:$1 - pnpm 版本; $2 - Node.js 版本
+#   说明:pnpm 11+ 需要 Node.js >= 22.13,pnpm 9/10 需要 Node.js >= 18.12.
+#        若当前 Node 版本不满足,输出错误信息并返回 1.
+check_pnpm_node_compatibility() {
+    local pnpm_ver="$1"
+    local node_ver="$2"
+    local pnpm_major
+    pnpm_major="$(echo "$pnpm_ver" | cut -d. -f1)"
+
+    if [[ -z "$pnpm_ver" ]]; then
+        return 0
+    fi
+
+    local required_node=""
+    if [[ "$pnpm_major" -ge 11 ]]; then
+        required_node="22.13.0"
+    elif [[ "$pnpm_major" -ge 9 ]]; then
+        required_node="18.12.0"
+    fi
+
+    if [[ -n "$required_node" ]] && ! version_ge "$node_ver" "$required_node"; then
+        log_error "secretpad/web/package.json 中 packageManager 指定 pnpm $pnpm_ver"
+        log_error "该版本 pnpm 要求 Node.js >= $required_node,但当前 Node.js 为 $node_ver"
+        log_error "请升级 Node.js,或将 packageManager 改为兼容当前 Node 的 pnpm 版本,例如:"
+        log_error "  \"packageManager\": \"pnpm@9.15.5\""
+        return 1
+    fi
+    return 0
+}
+
 # ------------------------------------------------------------------
 # JDK 自动探测
 # ------------------------------------------------------------------
@@ -347,38 +391,42 @@ check_environment() {
         exit 1
     fi
 
-    # Node.js 检测:前端项目要求 Node.js > 18
-    # 高版本 Node.js 与 Umi 4 / React 18 等栈没有明显兼容性问题,
-    # 因此只要大于 18 即视为满足要求。
+    # Node.js 检测:前端项目要求 Node.js >= 18.
+    # 但实际可用版本还受 package.json 中 packageManager 指定的 pnpm 版本约束:
+    #   - pnpm 11+ 需要 Node.js >= 22.13
+    #   - pnpm 9/10 需要 Node.js >= 18.12
+    # 因此先读取 packageManager 字段,再做兼容性校验.
     local node_ver
     node_ver="$(get_node_version)"
-    if command_exists node && version_ge "$node_ver" "18"; then
-        log_info "Node.js $node_ver 已满足要求 (> 18)"
-    else
-        if command_exists node; then
-            log_error "当前 Node.js 版本为 $node_ver,SecretPad 前端需要 Node.js > 18"
-            log_error "请使用 fnm/nvm 切换到 Node 18 及以上版本后重试,例如:"
-            log_error "  fnm install 20 && fnm default 20 && fnm use 20"
-        else
-            log_error "需要 Node.js > 18,请安装后重试"
-        fi
+    local pkg_pnpm_ver
+    pkg_pnpm_ver="$(get_web_package_manager_pnpm_version)"
+
+    if ! command_exists node; then
+        log_error "需要 Node.js,请安装后重试"
         exit 1
     fi
 
+    if ! version_ge "$node_ver" "18"; then
+        log_error "当前 Node.js 版本为 $node_ver,SecretPad 前端需要 Node.js >= 18"
+        log_error "请使用 fnm/nvm 切换到 Node 18 及以上版本后重试,例如:"
+        log_error "  fnm install 20 && fnm default 20 && fnm use 20"
+        exit 1
+    fi
+
+    if ! check_pnpm_node_compatibility "$pkg_pnpm_ver" "$node_ver"; then
+        exit 1
+    fi
+    log_info "Node.js $node_ver 已满足要求 (packageManager=pnpm@$pkg_pnpm_ver)"
+
     # pnpm 检测:通过 Node.js 内置的 corepack 管理,由 secretpad/web/package.json 中的
-    # packageManager 字段指定版本,当前要求 >= 8.8.0
+    # packageManager 字段指定版本.脚本仅校验 corepack 可用性,实际版本由 corepack 按
+    # packageManager 自动下载.
     if command_exists corepack; then
         local pnpm_ver
         pnpm_ver="$(get_pnpm_version)"
-        if version_ge "$pnpm_ver" "8.8.0"; then
-            log_info "pnpm $pnpm_ver(通过 corepack)已满足要求"
-        else
-            log_warn "正在通过 corepack 安装 pnpm ..."
-            # 在 web 目录下执行,读取 package.json 中的 packageManager 配置
-            (cd "$SECRETPAD_DIR/web" && corepack install)
-        fi
+        log_info "pnpm $pnpm_ver(通过 corepack,packageManager=pnpm@$pkg_pnpm_ver)已就绪"
     else
-        log_error "未找到 corepack,请升级 Node.js 到 16.10+ 或手动安装 pnpm >= 8.8.0"
+        log_error "未找到 corepack,请升级 Node.js 到 16.10+ 或手动安装 pnpm"
         exit 1
     fi
 
