@@ -5,23 +5,25 @@
 # ============================================================================
 #
 # 功能概述：
-#   将 sfwork 工作区所需的子项目克隆到本地指定目录。
-#   当前 sfwork 根仓库只管理文档、配置和编排脚本；四大子项目及本地隐私 SDK/Agent 作为独立 git 仓库存在。
+#   将 clwork 工作区所需的子项目克隆到本地指定目录。
+#   当前 clwork 根仓库只管理文档、配置和编排脚本；四大子项目及本地隐私 SDK/Agent 作为独立 git 仓库存在。
 #
 # 默认克隆的子项目：
-#   - privahub              -> ./privahub/           （Privahub 后端 + 新前端 web/）
-#   - kuscia                -> ./kuscia/
-#   - secretflow            -> ./secretflow/
-#   - privacy-java-sdk      -> ./privacy-java-sdk/
-#   - privacy-go-sdk        -> ./privacy-go-sdk/
-#   - privacy-local-agent   -> ./privacy-local-agent/
+#   - privahub             -> ./privahub/           （privahub 后端）
+#   - privaconsole         -> ./privahub/web/       （privahub 前端，嵌套在 privahub/ 下）
+#   - kuscia               -> ./kuscia/
+#   - secretflow           -> ./secretflow/
+#   - privacy-java-sdk     -> ./privacy-java-sdk/
+#   - privacy-go-sdk       -> ./privacy-go-sdk/
+#   - privacy-local-agent  -> ./privacy-local-agent/
 #
 # 说明：
-#   - privahub 仓库现在同时包含后端源码和新前端源码（privahub/web/），
-#     不再需要从独立的 privahub-frontend 仓库克隆 frontend-src/。
+#   - privahub 仓库本身只包含后端源码，前端源码在 privaconsole 仓库，
+#     需要克隆到 ./privahub/web/ 目录下（已被 privahub/.gitignore 忽略）。
 #   - 如果目标目录已存在且是 git 仓库，脚本会执行 git pull 并切换到指定分支。
 #   - 如果目标目录已存在但不是一个 git 仓库，脚本会跳过并给出警告。
 #   - 单个仓库处理失败不会阻塞后续仓库的克隆/更新。
+#   - clone时，需先clone privahub，再clone privaconsole，要不然会找不到privahub路径。
 #
 # 用法：
 #   bash scripts/clone-repos.sh              # 使用默认仓库和分支
@@ -30,12 +32,14 @@
 #
 # 环境变量（均可选）：
 #   PRIVAHUB_REPO             privahub 仓库地址（默认：https://github.com/fengzhizi319/privahub.git）
+#   PRIVACONSOLE_REPO         privaconsole 仓库地址（默认：https://github.com/fengzhizi319/privaconsole.git）
 #   KUSCIA_REPO                kuscia 仓库地址（默认：https://github.com/fengzhizi319/kuscia.git）
 #   SECRETFLOW_REPO            secretflow 仓库地址（默认：https://github.com/fengzhizi319/secretflow.git）
 #   PRIVACY_JAVA_REPO          privacy-java-sdk 仓库地址（默认：https://github.com/fengzhizi319/privacy-java-sdk.git）
 #   PRIVACY_GO_REPO            privacy-go-sdk 仓库地址（默认：https://github.com/fengzhizi319/privacy-go-sdk.git）
 #   PRIVACY_LOCAL_AGENT_REPO   privacy-local-agent 仓库地址（默认：https://github.com/fengzhizi319/privacy-local-agent.git）
 #   PRIVAHUB_BRANCH           privahub 分支（默认：main）
+#   PRIVACONSOLE_BRANCH       privaconsole 分支（默认：main）
 #   KUSCIA_BRANCH              kuscia 分支（默认：main）
 #   SECRETFLOW_BRANCH          secretflow 分支（默认：main）
 #   PRIVACY_JAVA_BRANCH        privacy-java-sdk 分支（默认：main）
@@ -121,9 +125,9 @@ print_help() {
     # 使用 head/tail 替代 sed 行号范围，避免 Git Bash (MSYS2) 下
     # CRLF 换行符导致 sed 匹配异常。
     if command_exists head && command_exists tail; then
-        tail -n +2 "$0" | head -n 40 | sed 's/^# //; s/^#//'
+        tail -n +2 "$0" | head -n 47 | sed 's/^# //; s/^#//'
     else
-        sed -n '2,40p' "$0" | sed 's/^# //; s/^#//'
+        sed -n '2,47p' "$0" | sed 's/^# //; s/^#//'
     fi
 }
 
@@ -159,6 +163,7 @@ fi
 # 仓库地址：优先读取环境变量，若未设置则使用上面根据协议拼接的默认地址。
 # ${VAR:-default} 表示 VAR 为空或未定义时使用 default。
 PRIVAHUB_REPO="${PRIVAHUB_REPO:-${BASE_URL}/privahub.git}"
+PRIVACONSOLE_REPO="${PRIVACONSOLE_REPO:-${BASE_URL}/privaconsole.git}"
 KUSCIA_REPO="${KUSCIA_REPO:-${BASE_URL}/kuscia.git}"
 SECRETFLOW_REPO="${SECRETFLOW_REPO:-${BASE_URL}/secretflow.git}"
 PRIVACY_JAVA_REPO="${PRIVACY_JAVA_REPO:-${BASE_URL}/privacy-java-sdk.git}"
@@ -167,6 +172,7 @@ PRIVACY_LOCAL_AGENT_REPO="${PRIVACY_LOCAL_AGENT_REPO:-${BASE_URL}/privacy-local-
 
 # 分支名：同样支持环境变量覆盖。
 PRIVAHUB_BRANCH="${PRIVAHUB_BRANCH:-main}"
+PRIVACONSOLE_BRANCH="${PRIVACONSOLE_BRANCH:-main}"
 KUSCIA_BRANCH="${KUSCIA_BRANCH:-main}"
 SECRETFLOW_BRANCH="${SECRETFLOW_BRANCH:-main}"
 PRIVACY_JAVA_BRANCH="${PRIVACY_JAVA_BRANCH:-main}"
@@ -281,13 +287,7 @@ process_repo() {
 }
 
 process_repo "$PRIVAHUB_REPO"           "$SFWORK_ROOT/privahub"                  "$PRIVAHUB_BRANCH"
-
-# 注意：新前端已内置于 privahub/web/ 目录，随 privahub 仓库一起克隆，
-# 不再需要从独立的 privahub-frontend 仓库克隆到 frontend-src/。
-if [ ! -d "$SFWORK_ROOT/privahub/.git" ]; then
-    log_error "privahub 不是有效的 git 仓库，请检查 privahub 是否克隆成功"
-    FAILED_COUNT=$((FAILED_COUNT + 1))
-fi
+process_repo "$PRIVACONSOLE_REPO"        "$SFWORK_ROOT/privahub/web"              "$PRIVACONSOLE_BRANCH"
 
 process_repo "$KUSCIA_REPO"              "$SFWORK_ROOT/kuscia"                     "$KUSCIA_BRANCH"
 process_repo "$SECRETFLOW_REPO"          "$SFWORK_ROOT/secretflow"          "$SECRETFLOW_BRANCH"

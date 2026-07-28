@@ -8,8 +8,8 @@
 # 子项目目录（独立仓库，不纳入 sfwork 根仓库）
 /kuscia/
 /secretflow/
-/secretpad/
-/secretpad-frontend/
+/privahub/
+
 
 # 本地隐私 SDK / Agent（已拆分为独立仓库）
 /privacy-java-sdk/
