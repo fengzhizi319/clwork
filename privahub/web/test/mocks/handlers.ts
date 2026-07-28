@@ -32,6 +32,22 @@ const fail = (code: number, msg: string) =>
 
 export const handlers = [
   // 登录：返回 token 与用户上下文，验证 token 落盘逻辑。
+  http.post(`${BASE}/api/v1alpha1/user/login`, async ({ request }) => {
+    const body = (await request.json()) as { name?: string; password?: string; passwordHash?: string };
+    const pass = body.password || body.passwordHash;
+    if (body.name === 'admin' && pass === 'correct-hash') {
+      return ok({
+        token: 'msw-token-123',
+        name: 'admin',
+        ownerId: 'kuscia-system',
+        platformType: 'CENTER',
+        platformNodeId: 'kuscia-system',
+        ownerType: 'CENTER',
+      });
+    }
+    return fail(202011601, 'invalid username or password');
+  }),
+
   http.post(`${BASE}/api/login`, async ({ request }) => {
     const body = (await request.json()) as { name?: string; passwordHash?: string };
     if (body.name === 'admin' && body.passwordHash === 'correct-hash') {

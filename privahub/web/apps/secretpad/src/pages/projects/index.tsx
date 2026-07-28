@@ -260,7 +260,7 @@ export const ProjectsPage: React.FC = () => {
   );
 
   const projectNodeNames = (project: Project) =>
-    project.nodes.map((n) => n.nodeName || n.nodeId).join(', ');
+    (project?.nodes || []).map((n) => n?.nodeName || n?.nodeId || '').filter(Boolean).join(', ');
 
   const jobStatusBadge = (status: string) => {
     switch (status) {

@@ -23,8 +23,9 @@ describe('apiClient.login', () => {
       name: 'admin',
       ownerId: 'kuscia-system',
       platformType: 'CENTER',
-      platformNodeId: 'kuscia-system',
       ownerType: 'CENTER',
+      role: 'ADMIN',
+      deployMode: 'CENTER',
     };
 
     mockPost.mockResolvedValueOnce({
@@ -36,8 +37,8 @@ describe('apiClient.login', () => {
     const result = await apiClient.login('admin', 'hash');
     expect(result).toEqual(user);
     expect(localStorage.getItem('secretpad-token')).toBe('abc123');
-    expect(mockPost).toHaveBeenCalledWith('/api/login', {
-      body: { name: 'admin', passwordHash: 'hash' },
+    expect(mockPost).toHaveBeenCalledWith('/api/v1alpha1/user/login', {
+      body: { name: 'admin', password: 'hash' },
     });
   });
 

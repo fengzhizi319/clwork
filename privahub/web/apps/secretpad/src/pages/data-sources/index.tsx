@@ -158,7 +158,7 @@ export const DataSourcesPage: React.FC = () => {
             <div className="text-xs text-gray-500 space-y-1 font-mono">
               <div>{t('dataSources.id')}: {ds.datasourceId}</div>
               <div>{t('dataSources.type')}: {ds.type}</div>
-              <div>{t('dataSources.nodes')}: {ds.nodes.map((n) => n.nodeName || n.nodeId).join(', ')}</div>
+              <div>{t('dataSources.nodes')}: {(ds.nodes || []).map((n) => n.nodeName || n.nodeId).join(', ')}</div>
             </div>
           </Card>
         ))}

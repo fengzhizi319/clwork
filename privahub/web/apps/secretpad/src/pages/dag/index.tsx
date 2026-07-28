@@ -42,20 +42,28 @@ function mapBackendStatus(status?: string): DAGNode['status'] {
   }
 }
 
+function safeString(val: any, fallback = ''): string {
+  if (typeof val === 'string') return val;
+  if (val && typeof val === 'object') return val.name || val.desc || val.codeName || fallback;
+  return val ? String(val) : fallback;
+}
+
 function mapGraphToDAG(graph?: GraphDetailVO): { nodes: DAGNode[]; edges: DAGEdge[] } {
   if (!graph) return { nodes: [], edges: [] };
   const nodes: DAGNode[] = (graph.nodes || []).map((n) => {
-    const { domain } = normalizeCodeName(n.codeName);
+    const codeNameStr = safeString(n.codeName, '');
+    const { domain } = normalizeCodeName(codeNameStr);
+    const labelStr = safeString(n.label, safeString(n.codeName, 'Node'));
     return {
-      id: n.graphNodeId || String(Math.random()),
-      name: n.label || n.codeName || 'Node',
+      id: safeString(n.graphNodeId, String(Math.random())),
+      name: labelStr,
       category: domain || 'Unknown',
       icon: domain === 'read_data' ? '📥' : domain.startsWith('ml') ? '🤖' : '⚙️',
       status: mapBackendStatus(n.status),
       x: n.x ?? 100,
       y: n.y ?? 100,
       progress: n.progress,
-      codeName: n.codeName,
+      codeName: codeNameStr,
       nodeDef: (n as any).nodeDef,
       inputs: (n as any).inputs,
       outputs: (n as any).outputs,
@@ -187,21 +195,41 @@ export const DAGPage: React.FC = () => {
       const list = await apiClient.getComponents();
       const all: ComponentSummaryDef[] = [];
       const groups: Record<string, DAGComponentDef[]> = {};
-      list.forEach((group) => {
-        const groupName = group.name || 'Components';
-        const defs: DAGComponentDef[] = [];
-        (group.comps || []).forEach((c) => {
-          all.push(c);
-          defs.push({
-            domain: c.domain || 'unknown',
-            name: c.name || 'unknown',
-            version: c.version,
-            desc: c.desc,
-            icon: c.domain?.startsWith('ml') ? '🤖' : '⚙️',
-          });
+
+      if (Array.isArray(list)) {
+        list.forEach((item: any) => {
+          if (item?.comps && Array.isArray(item.comps)) {
+            const groupName = item.name || 'Components';
+            const defs: DAGComponentDef[] = [];
+            item.comps.forEach((c: any) => {
+              all.push(c);
+              const domain = c.domain || (c.code_name ? c.code_name.split('/')[0] : 'unknown');
+              defs.push({
+                domain,
+                name: c.name || c.code_name || 'unknown',
+                version: c.version,
+                desc: c.desc || c.description,
+                icon: domain.startsWith('ml') ? '🤖' : '⚙️',
+              });
+            });
+            if (defs.length) groups[groupName] = defs;
+          } else {
+            all.push(item);
+            const category = item.category || item.domain || (item.code_name ? item.code_name.split('/')[0] : 'Other');
+            const domain = item.domain || (item.code_name ? item.code_name.split('/')[0] : 'unknown');
+            const compName = item.code_name ? (item.code_name.includes('/') ? item.code_name.split('/').slice(1).join('/') : item.code_name) : (item.name || 'unknown');
+            const def: DAGComponentDef = {
+              domain,
+              name: compName,
+              version: item.version,
+              desc: item.desc || item.description,
+              icon: domain.startsWith('ml') ? '🤖' : domain.includes('data') ? '📥' : '⚙️',
+            };
+            if (!groups[category]) groups[category] = [];
+            groups[category].push(def);
+          }
         });
-        if (defs.length) groups[groupName] = defs;
-      });
+      }
       return { all, groups };
     },
   });
@@ -518,7 +546,7 @@ export const DAGPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={openTemplate}
-              disabled={!selectedProject || selectedProject.nodes.length === 0}
+              disabled={!selectedProject || (selectedProject?.nodes || []).length === 0}
             >
               {t('dag.template')}
             </Button>
@@ -562,7 +590,7 @@ export const DAGPage: React.FC = () => {
 
       <div className="flex-1 min-h-0">
         {selectedGraph ? (
-          <AccessGuard access={{ types: [Platform.CENTER] }} fallback={<DAGNextWorkspace readOnly title={selectedGraph.name} initialNodes={nodes} initialEdges={edges} labels={dagLabels} onGetComponentDef={handleGetComponentDef} />}>
+          <AccessGuard access={{ types: [Platform.CENTER] }} fallback={<DAGNextWorkspace readOnly title={selectedGraph.name} initialNodes={nodes} initialEdges={edges} componentGroups={componentGroups} i18nMap={i18nMap} labels={dagLabels} onGetComponentDef={handleGetComponentDef} />}>
             <DAGNextWorkspace
               title={selectedGraph.name}
               initialNodes={nodes}

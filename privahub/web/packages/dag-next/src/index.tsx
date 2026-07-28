@@ -578,6 +578,16 @@ export const DAGNextWorkspace: React.FC<DAGCanvasProps> = ({
     };
   };
 
+function formatReactChild(val: any, fallback = ''): string {
+  if (val === null || val === undefined) return fallback;
+  if (typeof val === 'string') return val;
+  if (typeof val === 'number' || typeof val === 'boolean') return String(val);
+  if (typeof val === 'object') {
+    return val.name || val.desc || val.label || val.codeName || fallback;
+  }
+  return String(val);
+}
+
   const renderComponentPalette = () => (
     <div className="w-56 bg-gray-950/80 border-r border-gray-800 flex flex-col">
       <div className="p-3 border-b border-gray-800 font-semibold text-xs text-gray-400 uppercase tracking-wider">
@@ -589,16 +599,22 @@ export const DAGNextWorkspace: React.FC<DAGCanvasProps> = ({
             <div className="px-2 py-1 text-gray-500 font-semibold uppercase text-[10px]">{group}</div>
             {items.map((component, idx) => {
               const codeName = `${component.domain}/${component.name}`;
-              const label = i18nMap[component.name] || i18nMap[codeName] || component.name;
+              const rawLabel = i18nMap[component.name] || i18nMap[codeName] || component.name;
+              const label = formatReactChild(rawLabel, component.name);
               return (
                 <div
                   key={`${component.domain}-${component.name}-${idx}`}
-                  className="p-2 mt-1 rounded bg-gray-900 border border-gray-800 hover:border-blue-500 hover:bg-gray-850 cursor-pointer flex items-center gap-2 transition-all group"
-                  title={component.desc || codeName}
+                  draggable={!readOnly}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('application/json', JSON.stringify(component));
+                    e.dataTransfer.setData('text/plain', `${component.domain}/${component.name}`);
+                  }}
+                  className="p-2 mt-1 rounded bg-gray-900 border border-gray-800 hover:border-blue-500 hover:bg-gray-850 cursor-grab active:cursor-grabbing flex items-center gap-2 transition-all group select-none"
+                  title={formatReactChild(component.desc, codeName)}
                 >
-                  {/* 点击主体区域：添加算子到画布 */}
+                  {/* 点击或拖拽主体区域：添加算子到画布 */}
                   <div className="flex items-center gap-2 flex-1 min-w-0" onClick={() => handleAddComponent(component)}>
-                    <span>{component.icon || '⚙️'}</span>
+                    <span>{formatReactChild(component.icon, '⚙️')}</span>
                     <span className="truncate">{label}</span>
                   </div>
                   {/* 解释器入口：查看算子定义详情 */}
@@ -670,8 +686,8 @@ export const DAGNextWorkspace: React.FC<DAGCanvasProps> = ({
         } ${isDragging && dragNodeId === node.id ? 'cursor-grabbing' : readOnly ? 'cursor-default' : 'cursor-grab'}`}
       >
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-base">{node.icon}</span>
-          <span className="font-semibold text-xs text-gray-200 truncate">{node.name}</span>
+          <span className="text-base">{formatReactChild(node.icon, '⚙️')}</span>
+          <span className="font-semibold text-xs text-gray-200 truncate">{formatReactChild(node.name, 'Node')}</span>
         </div>
         <div className="flex items-center justify-between text-[10px] text-gray-400">
           <span>{node.category}</span>
@@ -745,6 +761,46 @@ export const DAGNextWorkspace: React.FC<DAGCanvasProps> = ({
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
           onClick={handleCanvasClick}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (readOnly) return;
+            try {
+              const raw = e.dataTransfer.getData('application/json');
+              if (!raw) return;
+              const component: DAGComponentDef = JSON.parse(raw);
+              if (!component || !component.name || !component.domain) return;
+
+              const rect = canvasRef.current?.getBoundingClientRect();
+              const dropX = rect ? Math.max(20, Math.min(rect.width - 160, e.clientX - rect.left - 70)) : 100 + nodes.length * 30;
+              const dropY = rect ? Math.max(20, Math.min(rect.height - 80, e.clientY - rect.top - 20)) : 100 + nodes.length * 30;
+
+              const codeName = `${component.domain}/${component.name}`;
+              const label = i18nMap[component.name] || i18nMap[codeName] || component.name;
+
+              const newNode: DAGNode = {
+                id: `node-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+                name: label,
+                codeName,
+                domain: component.domain,
+                version: component.version,
+                category: component.domain,
+                icon: component.icon || '⚙️',
+                status: 'Ready',
+                x: Math.round(dropX),
+                y: Math.round(dropY),
+              };
+
+              setNodes((prev) => [...prev, newNode]);
+              setSelectedNode(newNode);
+              if (onAddNode) onAddNode(newNode);
+            } catch (err) {
+              console.error('Failed to parse dragged component:', err);
+            }
+          }}
           style={{ cursor: pendingConnection ? 'crosshair' : 'default' }}
         >
           {/* SVG Connecting Edges */}

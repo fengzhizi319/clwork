@@ -24,6 +24,7 @@ api.use({
     const token = typeof localStorage !== 'undefined' ? localStorage.getItem('secretpad-token') : null;
     if (token) {
       request.headers.set('User-Token', token);
+      request.headers.set('Authorization', `Bearer ${token}`);
     }
     request.headers.set('Trace-Id', generateTraceId());
     return request;
