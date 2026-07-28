@@ -80,7 +80,7 @@ Needs root for CoreDNS port 53 and Envoy port 80.
 |---|---|
 | KusciaAPI gRPC | 8083 (non-Docker: 18083 on host) |
 | Gateway public | 1080 |
-| Gateway internal | 80 (non-Docker: 13081 on host) |
+| Gateway public | 80 (non-Docker: 18080 on host) |
 | DataMesh HTTP | 8070 |
 | DataMesh gRPC | 8071 |
 | ConfManager HTTP | 8060 |

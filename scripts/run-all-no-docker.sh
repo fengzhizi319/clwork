@@ -62,6 +62,7 @@ readonly PID_DIR="$LOG_DIR/pids"
 
 # KUSCIA_HOME: Kuscia 本地运行时的主目录
 readonly KUSCIA_HOME="${KUSCIA_HOME:-$ROOT_DIR/.local-kuscia}"
+export KUSCIA_HOME
 
 # CONDA_ENV: SecretFlow 运行与构建使用的 conda 环境名称
 CONDA_ENV="${CONDA_ENV:-sf310}"
@@ -88,9 +89,9 @@ log_step() { echo -e "${BLUE}[STEP]${NC} $*"; }
 # ------------------------------------------------------------------
 run_sudo() {
     if [[ -n "${SUDO_PWD:-}" ]]; then
-        echo "$SUDO_PWD" | sudo -S "$@"
+        echo "$SUDO_PWD" | sudo -S env PATH="$PATH" KUSCIA_HOME="$KUSCIA_HOME" "$@"
     elif sudo -n true 2>/dev/null; then
-        sudo "$@"
+        sudo env PATH="$PATH" KUSCIA_HOME="$KUSCIA_HOME" "$@"
     else
         log_error "需要 sudo 权限但未设置 SUDO_PWD，且当前用户未配置免密 sudo"
         log_error "请设置环境变量：export SUDO_PWD=你的sudo密码"
@@ -266,10 +267,9 @@ start_kuscia_master() {
     log_step "启动 Kuscia Master（本地二进制模式）..."
     stop_kuscia_master
 
-    export KUSCIA_HOME="$KUSCIA_HOME"
     mkdir -p "$KUSCIA_HOME"
 
-    run_sudo bash "$KUSCIA_DIR/scripts/run_local_kuscia.sh" master \
+    run_sudo DOMAIN_ID=kuscia-system bash "$KUSCIA_DIR/scripts/run_local_kuscia.sh" master \
         > "$LOG_DIR/kuscia-master.log" 2>&1 &
 
     sleep 2
@@ -289,16 +289,17 @@ start_kuscia_master() {
 
 stop_kuscia_master() {
     log_info "停止 Kuscia Master ..."
-    export KUSCIA_HOME="$KUSCIA_HOME"
     if [[ -f "$KUSCIA_HOME/var/kuscia.pid" ]]; then
         run_sudo bash "$KUSCIA_DIR/scripts/run_local_kuscia.sh" --stop || true
-    fi
 
-    local remaining
-    remaining="$(pgrep -f "kuscia start -c" 2>/dev/null || true)"
-    if [[ -n "$remaining" ]]; then
-        log_warn "发现残留 Kuscia 进程，强制清理..."
-        run_sudo kill -9 $remaining 2>/dev/null || true
+        local remaining
+        remaining="$(pgrep -f "kuscia start -c" -u "$(id -u)" 2>/dev/null || true)"
+        if [[ -n "$remaining" ]]; then
+            log_warn "发现残留 Kuscia 进程，强制清理..."
+            run_sudo kill -9 $remaining 2>/dev/null || true
+        fi
+    else
+        log_info "未找到 $KUSCIA_HOME/var/kuscia.pid，跳过本地 Kuscia Master 停止"
     fi
 
     rm -f "$PID_DIR/kuscia-master.pid"
@@ -324,14 +325,8 @@ start_privahub_backend() {
 
     cd "$PRIVAHUB_DIR"
 
-    # 非 Docker 本地模式下，Kuscia 默认端口为 8083(gRPC)
-    # 使用 SECRETPAD_PROFILE=dev 加载 config/secretpad-dev.yaml
-    # 但非 Docker 模式下 kuscia api_port 应为 8083（不是 18083）
-    export SECRETPAD_KUSCIA_API_ADDRESS=127.0.0.1
-    export SECRETPAD_KUSCIA_API_PORT=8083
-    export SECRETPAD_KUSCIA_PROTOCOL=notls
-
-    nohup ./bin/privahub -config ./config/secretpad.yaml > "$LOG_DIR/backend.log" 2>&1 &
+    # 非 Docker 本地模式下，config/privahub.yaml 已配置 Kuscia gRPC 端口 8083、notls
+    nohup ./bin/privahub -config ./config/privahub.yaml > "$LOG_DIR/backend.log" 2>&1 &
 
     echo $! > "$PID_DIR/privahub-backend.pid"
     wait_for_port 127.0.0.1 8080 120 "后端 HTTP"
@@ -348,9 +343,11 @@ start_privahub_frontend() {
     cd "$PRIVAHUB_DIR/web"
     if [[ ! -d "node_modules" ]]; then
         log_info "首次运行，安装前端依赖..."
+        corepack enable >/dev/null 2>&1 || true
         corepack pnpm install
     fi
 
+    corepack enable >/dev/null 2>&1 || true
     nohup corepack pnpm --filter @secretpad/app dev > "$LOG_DIR/frontend.log" 2>&1 &
     echo $! > "$PID_DIR/privahub-frontend.pid"
     wait_for_port 127.0.0.1 8000 120 "前端开发服务器"

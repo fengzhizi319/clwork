@@ -30,14 +30,12 @@
 #
 # 环境变量（均可选）：
 #   PRIVAHUB_REPO             privahub 仓库地址（默认：https://github.com/fengzhizi319/privahub.git）
-#   PRIVAHUB_FRONTEND_REPO    privahub-frontend 仓库地址（默认：https://github.com/fengzhizi319/privahub-frontend.git）
 #   KUSCIA_REPO                kuscia 仓库地址（默认：https://github.com/fengzhizi319/kuscia.git）
 #   SECRETFLOW_REPO            secretflow 仓库地址（默认：https://github.com/fengzhizi319/secretflow.git）
 #   PRIVACY_JAVA_REPO          privacy-java-sdk 仓库地址（默认：https://github.com/fengzhizi319/privacy-java-sdk.git）
 #   PRIVACY_GO_REPO            privacy-go-sdk 仓库地址（默认：https://github.com/fengzhizi319/privacy-go-sdk.git）
 #   PRIVACY_LOCAL_AGENT_REPO   privacy-local-agent 仓库地址（默认：https://github.com/fengzhizi319/privacy-local-agent.git）
 #   PRIVAHUB_BRANCH           privahub 分支（默认：main）
-#   PRIVAHUB_FRONTEND_BRANCH  privahub-frontend 分支（默认：main）
 #   KUSCIA_BRANCH              kuscia 分支（默认：main）
 #   SECRETFLOW_BRANCH          secretflow 分支（默认：main）
 #   PRIVACY_JAVA_BRANCH        privacy-java-sdk 分支（默认：main）
@@ -161,7 +159,6 @@ fi
 # 仓库地址：优先读取环境变量，若未设置则使用上面根据协议拼接的默认地址。
 # ${VAR:-default} 表示 VAR 为空或未定义时使用 default。
 PRIVAHUB_REPO="${PRIVAHUB_REPO:-${BASE_URL}/privahub.git}"
-PRIVAHUB_FRONTEND_REPO="${PRIVAHUB_FRONTEND_REPO:-${BASE_URL}/privahub-frontend.git}"
 KUSCIA_REPO="${KUSCIA_REPO:-${BASE_URL}/kuscia.git}"
 SECRETFLOW_REPO="${SECRETFLOW_REPO:-${BASE_URL}/secretflow.git}"
 PRIVACY_JAVA_REPO="${PRIVACY_JAVA_REPO:-${BASE_URL}/privacy-java-sdk.git}"
@@ -170,7 +167,6 @@ PRIVACY_LOCAL_AGENT_REPO="${PRIVACY_LOCAL_AGENT_REPO:-${BASE_URL}/privacy-local-
 
 # 分支名：同样支持环境变量覆盖。
 PRIVAHUB_BRANCH="${PRIVAHUB_BRANCH:-main}"
-PRIVAHUB_FRONTEND_BRANCH="${PRIVAHUB_FRONTEND_BRANCH:-main}"
 KUSCIA_BRANCH="${KUSCIA_BRANCH:-main}"
 SECRETFLOW_BRANCH="${SECRETFLOW_BRANCH:-main}"
 PRIVACY_JAVA_BRANCH="${PRIVACY_JAVA_BRANCH:-main}"

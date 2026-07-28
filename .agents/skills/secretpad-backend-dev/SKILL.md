@@ -1,11 +1,11 @@
 ---
 name: secretpad-backend-dev
-description: Develop the SecretPad backend. Use when the user asks about Java/Spring Boot code, REST APIs, JPA entities, repositories, service logic, Kuscia API integration, DataMesh integration, database migrations, or backend build/test.
+description: Develop the Privahub backend. Use when the user asks about Java/Spring Boot code, REST APIs, JPA entities, repositories, service logic, Kuscia API integration, DataMesh integration, database migrations, or backend build/test.
 ---
 
-# SecretPad Backend Development
+# Privahub Backend Development
 
-SecretPad backend is a Spring Boot 3.3.5 multi-module Maven project.
+Privahub backend is a Spring Boot 3.3.5 multi-module Maven project.
 
 ## Stack
 
@@ -19,7 +19,7 @@ SecretPad backend is a Spring Boot 3.3.5 multi-module Maven project.
 ## Module Structure
 
 ```
-secretpad/
+privahub/
 ├── secretpad-common/       # Utilities, exceptions, enums
 ├── secretpad-persistence/  # JPA entities (*DO), repositories, Flyway
 ├── secretpad-manager/      # Integration managers (Kuscia, data, node, job)
@@ -33,7 +33,7 @@ secretpad/
 ## Key Commands
 
 ```bash
-cd secretpad
+cd privahub
 
 # Run tests
 mvn clean test
@@ -72,7 +72,7 @@ bash scripts/test/setup.sh
 ```bash
 export KUSCIA_API_ADDRESS=127.0.0.1
 export KUSCIA_API_PORT=18083
-export KUSCIA_GW_ADDRESS=127.0.0.1:13081
+export KUSCIA_GW_ADDRESS=127.0.0.1:18080
 export KUSCIA_PROTOCOL=notls
 java -Dspring.profiles.active=dev \
      -Dsun.net.http.allowRestrictedHeaders=true \

@@ -235,6 +235,7 @@ check_environment() {
 
     # pnpm/corepack 检测
     if command_exists corepack; then
+        corepack enable >/dev/null 2>&1 || true
         local pnpm_ver
         pnpm_ver="$(get_pnpm_version)"
         log_info "pnpm $pnpm_ver (通过 corepack) 已就绪"
@@ -387,7 +388,8 @@ check_required_ports() {
     fi
 
     if [ "$kuscia_running" = false ]; then
-        for p in 18080 18082 18083 13081; do
+        # center 模式端口: master(18080/18082/18083) + alice lite(28080~28083) + bob lite(38080~38083)
+        for p in 18080 18082 18083 28080 28081 28082 28083 38080 38081 38082 38083; do
             if port_in_use "$p"; then
                 log_error "端口 $p 已被占用,无法部署 Kuscia"
                 abort=true
@@ -508,7 +510,11 @@ reset_kuscia() {
             log_info "Kuscia 数据目录已清空"
         else
             if command -v sudo >/dev/null 2>&1; then
-                sudo rm -rf "$kuscia_install_dir" >/dev/null 2>&1 || true
+                if [[ -n "${SUDO_PWD:-}" ]]; then
+                    echo "$SUDO_PWD" | sudo -S rm -rf "$kuscia_install_dir" >/dev/null 2>&1 || true
+                else
+                    sudo rm -rf "$kuscia_install_dir" >/dev/null 2>&1 || true
+                fi
             else
                 rm -rf "$kuscia_install_dir" >/dev/null 2>&1 || true
             fi
@@ -534,11 +540,11 @@ start_kuscia() {
 
         # 使用 kuscia 自带的 start_standalone.sh 部署中心化集群
         export ROOT="${INSTALL_DIR:-$HOME/kuscia}"
-        bash start_standalone.sh center -P notls
+        bash start_standalone.sh center -P NOTLS
     fi
 
     wait_for_port 127.0.0.1 18083 180 "Kuscia API gRPC"
-    wait_for_port 127.0.0.1 13081 180 "Kuscia Envoy 内部端口"
+    wait_for_port 127.0.0.1 18080 180 "Kuscia 跨域网关端口"
 }
 
 # ------------------------------------------------------------------
@@ -588,7 +594,7 @@ import_custom_image_to_kuscia() {
 # Privahub 后端（Go）
 # ------------------------------------------------------------------
 build_backend() {
-    log_step "编译 Privahub 后端(Go)..."
+    log_step "编译 Privahub 后端(Go，需要 CGO 支持 SQLite)..."
     cd "$PRIVAHUB_DIR"
     CGO_ENABLED=1 go build -o bin/privahub ./cmd/server
     if [ ! -f "$PRIVAHUB_DIR/bin/privahub" ]; then
@@ -610,10 +616,10 @@ start_backend() {
 
     cd "$PRIVAHUB_DIR"
 
-    # Docker Kuscia 模式下使用 dev profile (api_port: 18083, gateway: 127.0.0.1:13081)
-    export SECRETPAD_PROFILE=dev
+    # Docker Kuscia 模式下使用 dev profile (api_port: 18083, gateway: 127.0.0.1:18080)
+    export PRIVAHUB_PROFILE=dev
 
-    nohup ./bin/privahub -config ./config/secretpad.yaml > "$LOG_DIR/backend.log" 2>&1 &
+    nohup ./bin/privahub -config ./config/privahub.yaml > "$LOG_DIR/backend.log" 2>&1 &
 
     echo $! > "$pidfile"
     disown $! 2>/dev/null || true

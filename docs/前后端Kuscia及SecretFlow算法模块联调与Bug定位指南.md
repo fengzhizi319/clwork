@@ -1,6 +1,6 @@
 # 前后端、Kuscia 及 SecretFlow 算法模块联调与 Bug 定位指南
 
-> 适用对象：在 `sfwork` 工作区中同时改动 SecretPad 前端、SecretPad 后端、Kuscia 或 SecretFlow 算法组件的开发者。
+> 适用对象：在 `sfwork` 工作区中同时改动 Privahub 前端、Privahub 后端、Kuscia 或 SecretFlow 算法组件的开发者。
 > 目标：建立一条从页面点击到算法组件执行的完整链路认知，并提供可复现、可定位问题的调试方法。
 
 ---
@@ -19,7 +19,7 @@
   - [3.4 第四层：SecretFlow 组件是否正确执行](#34-第四层secretflow-组件是否正确执行)
 - [4. 典型 Bug 定位流程示例](#4-典型-bug-定位流程示例)
   - [案例：差分隐私流水线 reset 后卡住](#案例差分隐私流水线-reset-后卡住)
-  - [案例：SecretPad 后端编译失败（NodeEvalParam 协议升级）](#案例secretpad-后端编译失败nodeevalparam-协议升级)
+  - [案例：Privahub 后端编译失败（NodeEvalParam 协议升级）](#案例secretpad-后端编译失败nodeevalparam-协议升级)
   - [案例：差分隐私流水线运行失败（protobuf Any type_url 不匹配）](#案例差分隐私流水线运行失败protobuf-any-type_url-不匹配)
   - [案例：自定义 SecretFlow 镜像构建失败（pip 哈希校验失败）](#案例自定义-secretflow-镜像构建失败pip-哈希校验失败)
   - [案例：差分隐私流水线运行失败（MessageToJson 参数不兼容）](#案例差分隐私流水线运行失败messagetojson-参数不兼容)
@@ -34,10 +34,10 @@
 ## 1. 整体架构与数据流
 
 ```text
-SecretPad 前端（React/Umi，localhost:8000）
+Privahub 前端（React/Umi，localhost:8000）
         │  REST /api/v1alpha1/*
         ▼
-SecretPad 后端（Spring Boot，localhost:8080/8443）
+Privahub 后端（Spring Boot，localhost:8080/8443）
         │  gRPC（KusciaAPI，默认 localhost:18083）
         ▼
 Kuscia Master（Docker，${USER}-kuscia-master）
@@ -85,12 +85,11 @@ bash scripts/dev-stop.sh --kuscia
 
 | 服务 | 端口 | 说明 |
 |------|------|------|
-| SecretPad 前端 dev server | 8000 | Umi，/api 代理到后端 8080 |
-| SecretPad 后端 HTTP | 8080 | Spring Boot `server.http-port` |
-| SecretPad 后端 HTTPS | 8443 | Spring Boot `server.port` |
+| Privahub 前端 dev server | 8000 | Vite，/api 代理到后端 8080 |
+| Privahub 后端 HTTP | 8080 | Go HTTP 服务 |
 | Kuscia API gRPC | 18083 | 后端通过它创建/查询 Job |
-| Kuscia Gateway | 18080 | 外部访问 |
-| Kuscia Envoy 内部 | 13081 | 数据面通信 |
+| Kuscia Gateway | 18080 | 容器 Envoy 跨域网关（1080 映射） |
+| Kuscia Envoy 跨域网关 | 18080 | 数据面通信 |
 
 ### 2.3 关键环境变量（后端连接 Kuscia）
 
@@ -99,11 +98,11 @@ bash scripts/dev-stop.sh --kuscia
 ```bash
 export KUSCIA_API_ADDRESS=127.0.0.1
 export KUSCIA_API_PORT=18083
-export KUSCIA_GW_ADDRESS=127.0.0.1:13081
+export KUSCIA_GW_ADDRESS=127.0.0.1:18080
 export KUSCIA_PROTOCOL=notls
 ```
 
-如果你手动启动后端 jar，也需要带上这些变量。
+如果你手动启动后端二进制，也需要带上这些变量。
 
 ---
 
@@ -135,21 +134,21 @@ export KUSCIA_PROTOCOL=notls
 2. 点击面板左上角的 🚫 **Clear** 按钮清空已有记录，避免历史请求干扰。
 3. 勾选面板顶部的 `Preserve log`（保留日志）。这样页面刷新或跳转后，之前的请求仍会保留，方便回溯。
 4. 触发你想排查的操作，例如点击“运行”按钮。
-5. 观察面板中是否出现新的请求条目。SecretPad 后端接口一般以 `/api/v1alpha1/` 开头，常见接口：
+5. 观察面板中是否出现新的请求条目。Privahub 后端接口一般以 `/api/v1alpha1/` 开头，常见接口：
    - `/api/v1alpha1/graph/start` —— 启动训练流
    - `/api/v1alpha1/graph/update` —— 保存图节点
    - `/api/v1alpha1/graph/node/status` —— 查询节点状态
 6. 点击目标请求，右侧面板会显示三栏：
    - **Headers（标头）**：请求方法（`POST` / `GET`）、状态码（`Status`）、请求 URL。
    - **Payload（负载）**：请求体，即前端传给后端的数据。重点检查 `projectId`、`graphId`、`nodes` 等字段是否正确。
-   - **Preview / Response（响应）**：后端返回的数据。SecretPad 统一返回格式为：
+   - **Preview / Response（响应）**：后端返回的数据。Privahub 统一返回格式为：
      ```json
      { "status": { "code": 0, "msg": "success" }, "data": { ... } }
      ```
      重点看 `status.code` 是否为 `0`。非 0 表示后端校验失败或业务错误，此时问题进入下一层（后端）。
 7. 如果请求状态码是 `4xx` / `5xx`，说明请求本身有问题或后端报错；如果请求**完全没有出现**，说明前端没有触发调用，需要看 Console 或 Sources。
 
-> **小技巧**：在 Network 面板顶部的过滤框输入 `api/v1alpha1`，可以快速只显示 SecretPad 接口，排除图片、CSS、JS 等噪音。
+> **小技巧**：在 Network 面板顶部的过滤框输入 `api/v1alpha1`，可以快速只显示 Privahub 接口，排除图片、CSS、JS 等噪音。
 
 ---
 
@@ -174,9 +173,9 @@ export KUSCIA_PROTOCOL=notls
 3. 在关键函数（如 `startGraph`、`saveGraph`）左侧行号处单击，设置一个蓝色断点。
 4. 再次触发操作，浏览器会在断点处暂停，右侧 `Scope` 区域可以查看当前变量值。
 5. 常用断点文件：
-   - `secretpad/frontend-src/apps/platform/src/modules/pipeline/pipeline-creation-view.tsx` —— 创建/打开训练流
-   - `secretpad/frontend-src/apps/platform/src/modules/main-dag/graph-service.ts` —— 保存图、启动图
-   - `secretpad/frontend-src/apps/platform/src/modules/component-config/...` —— 组件属性面板
+   - `privahub/frontend-src/apps/platform/src/modules/pipeline/pipeline-creation-view.tsx` —— 创建/打开训练流
+   - `privahub/frontend-src/apps/platform/src/modules/main-dag/graph-service.ts` —— 保存图、启动图
+   - `privahub/frontend-src/apps/platform/src/modules/component-config/...` —— 组件属性面板
 
 ---
 
@@ -223,12 +222,12 @@ grep -iE "error|exception|fail" /home/charles/code/sfwork/logs/backend.log | tai
 
 #### 3.2.3 关键后端类
 
-- **图转作业**：`secretpad-service/src/main/java/org/secretflow/secretpad/service/graph/converter/KusciaJobConverter.java`
+- **图转作业**：`secretpad-service/src/main/java/org/secretflow/privahub/service/graph/converter/KusciaJobConverter.java`
   - `renderTaskInputConfig()` 生成 `TaskInputConfig`，其中 `sf_node_eval_param` 就是传给 SecretFlow 的节点参数。
-- **节点属性构建**：`secretpad-service/src/main/java/org/secretflow/secretpad/service/graph/chain/JobRenderHandler.java`
+- **节点属性构建**：`secretpad-service/src/main/java/org/secretflow/privahub/service/graph/chain/JobRenderHandler.java`
   - 把前端保存的 `nodeDef` 转成 `Pipeline.NodeDef`。
 - **Kuscia 调用封装**：`secretpad-manager` 模块下的 `KusciaApiService` / `KusciaGrpcClientAdapter`。
-- **任务状态同步**：`secretpad-service/src/main/java/org/secretflow/secretpad/manager/integration/job/JobManager.java`
+- **任务状态同步**：`secretpad-service/src/main/java/org/secretflow/privahub/manager/integration/job/JobManager.java`
 
 #### 3.2.4 如何确定后端已经把任务交给 Kuscia
 
@@ -504,13 +503,13 @@ class MyComponent(Component):
    ParseError: Message type "secretflow_spec.v1.NodeEvalParam" has no field named "domain"
    ```
 
-7. 结论：SecretPad 后端仍按旧协议生成 `NodeDef`（domain/name/version），而 SecretFlow 1.15 镜像已使用新协议 `NodeEvalParam`（comp_id）。需要前后端协议版本对齐。
+7. 结论：Privahub 后端仍按旧协议生成 `NodeDef`（domain/name/version），而 SecretFlow 1.15 镜像已使用新协议 `NodeEvalParam`（comp_id）。需要前后端协议版本对齐。
 
 ---
 
-### 案例：SecretPad 后端编译失败（NodeEvalParam 协议升级）
+### 案例：Privahub 后端编译失败（NodeEvalParam 协议升级）
 
-**现象**：将 `TaskInputConfig.sf_node_eval_param` 从旧 `secretflow.pipeline.NodeDef` 升级为 `secretflow_spec.v1.NodeEvalParam` 后，`secretpad` 后端编译报错：
+**现象**：将 `TaskInputConfig.sf_node_eval_param` 从旧 `secretflow.pipeline.NodeDef` 升级为 `secretflow_spec.v1.NodeEvalParam` 后，`privahub` 后端编译报错：
 
 ```text
 NodeDefUtils.java:98: cannot find symbol addAllI64s
@@ -541,7 +540,7 @@ ModelExportServiceImpl.java:377: cannot find symbol variable NodeDefUtils
 **验证**：
 
 ```bash
-cd /home/charles/code/sfwork/secretpad
+cd /home/charles/code/sfwork/privahub
 mvn clean install -Dmaven.test.skip=true -Dfile.encoding=UTF-8
 mvn test -pl secretpad-service -Dtest=KusciaJobConverterTest,ModelExportServiceImplTest
 ```
@@ -597,11 +596,11 @@ The remaining no-failed party task counts 0 are less than the task success thres
    secretflow_spec.v1.IndividualTable
    ```
 
-3. 结论：SecretPad 后端 `.proto` 里的 `package secretflow.spec.v1;` 生成的 Any `type_url` 是 `secretflow.spec.v1`（点号），而 SecretFlow 1.15 的 Python 包期望的是 `secretflow_spec.v1`（下划线），两者不一致。
+3. 结论：Privahub 后端 `.proto` 里的 `package secretflow.spec.v1;` 生成的 Any `type_url` 是 `secretflow.spec.v1`（点号），而 SecretFlow 1.15 的 Python 包期望的是 `secretflow_spec.v1`（下划线），两者不一致。
 
 **修复方案**：
 
-修改 `secretpad/proto/secretflow/spec/v1/` 下的所有 `.proto` 文件：
+修改 `privahub/proto/secretflow/spec/v1/` 下的所有 `.proto` 文件：
 
 ```protobuf
 // 修改前
@@ -613,9 +612,9 @@ package secretflow_spec.v1;
 
 同时修改引用这些类型的其他 `.proto` 文件：
 
-- `secretpad/proto/secretflow/protos/kuscia/task_config.proto`：
+- `privahub/proto/secretflow/protos/kuscia/task_config.proto`：
   `secretflow.spec.v1.NodeEvalParam` → `secretflow_spec.v1.NodeEvalParam`
-- `secretpad/proto/secretflow/protos/pipeline/pipeline.proto`：
+- `privahub/proto/secretflow/protos/pipeline/pipeline.proto`：
   `secretflow.spec.v1.DistData` → `secretflow_spec.v1.DistData`
 
 > 注意：`.proto` 中的 `option java_package = "com.secretflow.spec.v1";` 保持不变，这样 Java 类的包名和现有 import 都不会变。
@@ -623,15 +622,15 @@ package secretflow_spec.v1;
 然后重新生成 Java 桩代码并重启后端：
 
 ```bash
-cd /home/charles/code/sfwork/secretpad
+cd /home/charles/code/sfwork/privahub
 mvn clean install -Dmaven.test.skip=true -Dfile.encoding=UTF-8
 
 # 只重启后端（Kuscia 不需要重启）
 bash /home/charles/code/sfwork/scripts/dev-stop.sh
-cd /home/charles/code/sfwork/secretpad
+cd /home/charles/code/sfwork/privahub
 export KUSCIA_API_ADDRESS=127.0.0.1
 export KUSCIA_API_PORT=18083
-export KUSCIA_GW_ADDRESS=127.0.0.1:13081
+export KUSCIA_GW_ADDRESS=127.0.0.1:18080
 export KUSCIA_PROTOCOL=notls
 nohup java \
   -Dspring.profiles.active=dev \
@@ -651,12 +650,12 @@ SecretFlow 容器不再报 `Can not find message descriptor`，任务应能正�
 
 **经验总结**：
 
-- 当 SecretPad 后端与 SecretFlow 镜像分别使用不同版本的 `secretflow-spec` 时，不仅要检查字段名，还要核对 **protobuf package 名** 和 Any 的 `type_url`。
+- 当 Privahub 后端与 SecretFlow 镜像分别使用不同版本的 `secretflow-spec` 时，不仅要检查字段名，还要核对 **protobuf package 名** 和 Any 的 `type_url`。
 - 一个快速核对命令：
 
   ```bash
   # 后端生成的 type_url
-  grep -R "package secretflow\\.spec\\.v1" secretpad/proto
+  grep -R "package secretflow\\.spec\\.v1" privahub/proto
 
   # SecretFlow 镜像里的真实 full_name
   docker run --rm --entrypoint python secretflow/sf-privacy-dev:1.15.0.dev-privacy \
@@ -1028,7 +1027,7 @@ http://localhost:8000/dag?projectId=dcucgakp&mode=MPC&dagId=klflmlhv
 1. 前端构建无报错：
 
    ```bash
-   cd $SFWORK/secretpad/frontend-src
+   cd $SFWORK/privahub/frontend-src
    npx tsc --noEmit --project apps/platform/tsconfig.json
    ```
 
@@ -1132,7 +1131,7 @@ python -m pytest tests/component/privacy/test_privacy_components.py -v --env=pro
    - `Pending` → `describe pod` / `describe kt`；
    - `ErrImagePull` → 镜像导入；
    - `Error` → `crictl logs`。
-6. **协议/字段不匹配时**，优先对比 `secretpad/proto/secretflow/protos/...` 与 `secretflow/secretflow/protos/...` 以及 `secretflow-spec` 的版本。
+6. **协议/字段不匹配时**，优先对比 `privahub/proto/secretflow/protos/...` 与 `secretflow/secretflow/protos/...` 以及 `secretflow-spec` 的版本。
 7. **不要同时启动多个 Kuscia Master**，端口冲突会导致调度异常。
 8. **保留现场**：定位问题时先 `docker logs` / `crictl logs` 保存一份，避免重启后丢失。
 
@@ -1153,8 +1152,8 @@ python -m pytest tests/component/privacy/test_privacy_components.py -v --env=pro
        -t secretflow/sf-privacy-dev:1.15.0.dev-privacy
      ```
 5. 确认 Kuscia Lite 节点已导入新镜像。
-6. 在 SecretPad 前端新增/调整模板：
-   - 组件列表：`secretpad/config/components/secretflow.json` / `secretpad-web/config/components/secretflow.json`。
+6. 在 Privahub 前端新增/调整模板：
+   - 组件列表：`privahub/config/components/secretflow.json` / `secretpad-web/config/components/secretflow.json`。
    - 快速配置面板：`apps/platform/src/modules/component-config/template-quick-config/quick-config-privacy.tsx`。
    - 流水线模板：`apps/platform/src/modules/pipeline/templates/pipeline-template-privacy.ts` 等。
    - 模板中 `nodeDef` 的 `domain` / `name` / `version` / `attrs` 要与 SecretFlow 组件定义一致。

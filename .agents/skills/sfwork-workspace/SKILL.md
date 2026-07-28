@@ -1,11 +1,11 @@
 ---
 name: sfwork-workspace
-description: Work in the sfwork mono-repo workspace containing Kuscia, SecretFlow, SecretPad backend, and SecretPad frontend. Use for any task that spans multiple sub-projects, needs environment setup, build/test commands, or cross-project integration. Also use when the user asks about the overall workspace structure, ports, or how to run everything locally.
+description: Work in the sfwork mono-repo workspace containing Kuscia, SecretFlow, Privahub backend, and Privahub frontend. Use for any task that spans multiple sub-projects, needs environment setup, build/test commands, or cross-project integration. Also use when the user asks about the overall workspace structure, ports, or how to run everything locally.
 ---
 
 # SFWork Workspace
 
-The sfwork workspace bundles four main projects: Kuscia (Go), SecretFlow (Python), SecretPad backend (Java/Spring Boot), and SecretPad frontend (TypeScript/React/Vite).
+The sfwork workspace bundles four main projects: Kuscia (Go), SecretFlow (Python), Privahub backend (Java/Spring Boot), and Privahub frontend (TypeScript/React/Vite).
 
 ## Workspace Layout
 
@@ -13,7 +13,7 @@ The sfwork workspace bundles four main projects: Kuscia (Go), SecretFlow (Python
 sfwork/
 ├── kuscia/                 # Go orchestration engine
 ├── secretflow/             # Python privacy-preserving ML framework
-├── secretpad/              # Java backend + web/ frontend (active)
+├── privahub/              # Java backend + web/ frontend (active)
 ├── secretflowpad-go/       # Go backend (experimental / separate, not started by dev-start.sh)
 ├── privacy-java-sdk/       # Java local privacy SDK
 ├── privacy-go-sdk/         # Go local privacy SDK
@@ -34,13 +34,13 @@ sfwork/
 - **Frontend dev**: `http://localhost:8000`
 - **Backend**: `https://localhost:8443`, HTTP `http://localhost:8080`, inner `http://localhost:9001`
 - **Kuscia API gRPC**: `127.0.0.1:18083`
-- **Kuscia Gateway**: `127.0.0.1:13081`
+- **Kuscia Gateway**: `127.0.0.1:18080`
 - **Login**: `admin` / `12345678`
 
 ## Key Commands
 
 ```bash
-# Start Docker-Kuscia + local SecretPad backend/frontend
+# Start Docker-Kuscia + local Privahub backend/frontend
 bash scripts1/dev-start.sh
 
 # Stop local services (Java backend + Vite frontend)
@@ -61,19 +61,19 @@ cd kuscia && make build
 # Build SecretFlow
 cd secretflow && pip install -e .
 
-# Build SecretPad backend
-cd secretpad && mvn clean package -DskipTests
+# Build Privahub backend
+cd privahub && mvn clean package -DskipTests
 
 # Install frontend dependencies
-cd secretpad/web && corepack pnpm install
+cd privahub/web && corepack pnpm install
 
 # Dev frontend
-cd secretpad/web && corepack pnpm --filter @secretpad/app dev
+cd privahub/web && corepack pnpm --filter @privahub/app dev
 ```
 
 ## Port Conflict Notes
 
-- `scripts1/dev-start.sh` starts the Java SecretPad backend on port 8080 and the Vite dev server on port 8000.
+- `scripts1/dev-start.sh` starts the Java Privahub backend on port 8080 and the Vite dev server on port 8000.
 - If `../../../privahub/bin/secretpad-go` or another process is already listening on 8080, the script will fail with "端口 8080 被其他进程占用". Kill the conflicting process before starting.
 - Use `lsof -i :8080` and `lsof -i :8000` to identify conflicting processes.
 

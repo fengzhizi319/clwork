@@ -13,19 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Regenerate SecretPad component configs from the local SecretFlow source tree.
+"""[DEPRECATED] Regenerate SecretPad component configs from the local SecretFlow source tree.
 
-This is the local-dev counterpart of secretpad/scripts/update-sf-components.sh,
-which pulls component definitions from a Docker image. When running SecretPad
-backend directly against the source tree, use this script to keep
-secretpad/config/components/secretflow.json and config/i18n/secretflow.json in
-sync with the current SecretFlow code.
+This script was the local-dev counterpart of secretpad/scripts/update-sf-components.sh,
+which pulled component definitions from a Docker image. It wrote JSON files under
+`secretpad/config/components/` and `secretpad/config/i18n/` for the old Java SecretPad
+backend.
 
-Usage:
-    cd /path/to/sfwork
-    source "$(conda info --base)/etc/profile.d/conda.sh"
-    conda activate sf310
-    python scripts/update-sf-components-local.py
+The active backend is now `privahub` (Go), which loads component definitions directly
+from SecretFlow at runtime or via its own configuration mechanism. Keeping these JSON
+files under a `secretpad/` directory is no longer required for the workspace.
+
+This file is kept for reference only. Do not run it as part of the new Privahub
+workflow unless you are maintaining the legacy SecretPad directory.
 """
 
 import json

@@ -229,7 +229,7 @@ main() {
     log_info "或仅部署 Kuscia:"
     echo ""
     echo -e "  ${YELLOW}export KUSCIA_IMAGE=secretflow/kuscia:$EXTRA_TAG${NC}"
-    echo -e "  ${YELLOW}cd secretpad && bash scripts/install-kuscia-only.sh master -P notls${NC}"
+    echo -e "  ${YELLOW}cd kuscia/scripts/deploy && bash start_standalone.sh center -P notls${NC}"
     echo ""
 }
 

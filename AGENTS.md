@@ -17,10 +17,10 @@ This guide describes the `sfwork` workspace for AI coding agents. The workspace 
 |---|---|---|---|
 | **Kuscia** | Go | Kubernetes-based orchestration engine for federated learning jobs | `kuscia/` |
 | **SecretFlow** | Python | Privacy-preserving computation framework (MPC, HEU, SPU, TEE, FL) | `secretflow/` |
-| **SecretPad** | Java (Spring Boot) | Web management console backend | `secretpad/` |
-| **SecretPad Frontend** | TypeScript / React | Web management console UI | `secretpad/web/` |
+| **Privahub** | Go | Web management console backend | `privahub/` |
+| **Privahub Frontend** | TypeScript / React | Web management console UI | `privahub/web/` |
 
-There is also a legacy copy of the frontend at `secretpad/frontend-src/` and `secretpad-frontend/`, but it has been deprecated and removed; active development happens in `secretpad/web/`.
+There is also a legacy copy of the frontend at `privahub/frontend-src/` and `secretpad-frontend/`, but it has been deprecated and removed; active development happens in `privahub/web/`.
 
 ### 1.1 Local Privacy SDKs / Agent
 
@@ -28,7 +28,7 @@ In addition to the four main projects, `sfwork` is accompanied by three standalo
 
 | Project | Language | Role | Repository |
 |---|---|---|---|
-| **privacy-java-sdk** | Java 17 | Local SDK for Java/SecretPad backends | [github.com/fengzhizi319/privacy-java-sdk](https://github.com/fengzhizi319/privacy-java-sdk) |
+| **privacy-java-sdk** | Java 17 | Local SDK for Java/Privahub backends | [github.com/fengzhizi319/privacy-java-sdk](https://github.com/fengzhizi319/privacy-java-sdk) |
 | **privacy-go-sdk** | Go 1.21 | Local SDK for Go microservices | [github.com/fengzhizi319/privacy-go-sdk](https://github.com/fengzhizi319/privacy-go-sdk) |
 | **privacy-local-agent** | Python 3.10+ | REST + gRPC Sidecar for multi-language access | [github.com/fengzhizi319/privacy-local-agent](https://github.com/fengzhizi319/privacy-local-agent) |
 
@@ -37,10 +37,10 @@ Clone them next to the `sfwork` root directory when needed; they are ignored by 
 ### How the pieces fit together
 
 ```text
-SecretPad Frontend (React/Vite, port 8000 dev)
+Privahub Frontend (React/Vite, port 8000 dev)
         │  REST /api/v1alpha1/*
         ▼
-SecretPad Backend (Spring Boot, ports 8080/8443/9001)
+Privahub Backend (Go, ports 8080/9001)
         │  gRPC
         ▼
 Kuscia Master/Lite (Go, gRPC port 8083, Envoy ports 80/1080)
@@ -93,8 +93,7 @@ The detailed whitepaper and presentation are in `docs/doc-center/00-项目总览
 ├── logs/                         # aggregated logs from run-all-no-docker.sh
 ├── kuscia/                       # Go orchestration engine
 ├── secretflow/                   # Python privacy-preserving ML framework
-├── secretpad/                    # Java backend + web frontend
-├── secretpad-frontend/           # deprecated legacy frontend copy (removed)
+├── privahub/                     # Go backend + React/Vite frontend (privahub/web/)
 ├── privacy-java-sdk/             # Java local privacy SDK
 ├── privacy-go-sdk/               # Go local privacy SDK
 └── privacy-local-agent/          # Python REST/gRPC privacy agent
@@ -120,16 +119,17 @@ The detailed whitepaper and presentation are in `docs/doc-center/00-项目总览
 - PyArrow, DuckDB, gRPC
 - Build: `pdm-backend`, PEP 517 wheel
 
-### SecretPad (`secretpad/`)
-- **Java 17**
-- **Spring Boot 3.3.5**
-- Spring Data JPA + Hibernate, SQLite default, MySQL optional
-- Flyway migrations
-- gRPC 1.62.2 + Protobuf 3.25.5
-- Quartz scheduling, Ehcache 3
-- Maven multi-module project
+### Privahub (`privahub/`)
+- **Go 1.25**
+- **Gin** HTTP framework
+- **GORM** with SQLite (default) and MySQL drivers
+- **gRPC** via Kuscia Go client (`privahub/pkg/kuscia`)
+- **Viper** for configuration; profile-based configs in `config/privahub*.yaml`
+- **Zap** structured logging
+- **JWT** authentication
+- **Prometheus** metrics
 
-### SecretPad Frontend (`secretpad/web/`)
+### Privahub Frontend (`privahub/web/`)
 - **Node.js >= 18.0.0**, **pnpm >= 8.8.0** (managed by `packageManager` field, currently `pnpm@11.7.0`)
 - **React 18**, **Vite 5**, **Tailwind CSS**
 - **TypeScript 5.x**
@@ -195,38 +195,37 @@ python -m pytest tests/ -v                    # simulation mode
 python -m pytest tests/ --env=prod -v         # MPC/prod mode
 ```
 
-### 4.3 SecretPad Backend
+### 4.3 Privahub Backend
 
 ```bash
-cd /home/charles/code/sfwork/secretpad
+cd /home/charles/code/sfwork/privahub
 
-# Run tests
-mvn clean test
+# Run tests (CGO required for SQLite driver)
+CGO_ENABLED=1 go test ./...
 
-# Build backend jar (skip tests)
-mvn clean package -DskipTests -Dfile.encoding=UTF-8
-# fat jar is produced at target/secretpad.jar
+# Build backend binary (CGO required for SQLite driver)
+CGO_ENABLED=1 go build -o bin/privahub ./cmd/server
 
-# Full build with frontend assets
-./scripts/build/build.sh true
+# Run locally with the dev profile (Docker-mapped Kuscia ports)
+PRIVAHUB_PROFILE=dev ./bin/privahub -config ./config/privahub.yaml
 
 # Docker image
 make image
-
-# Package all-in-one tar.gz
-make pack platform="linux/amd64"
 ```
 
-### 4.4 SecretPad Frontend
+### 4.4 Privahub Frontend
 
 ```bash
-cd /home/charles/code/sfwork/secretpad/web
+cd /home/charles/code/sfwork/privahub/web
+
+# Enable corepack so the project-specified pnpm version is used
+corepack enable
 
 # Install dependencies
 corepack pnpm install
 
 # Dev server (http://localhost:8000)
-corepack pnpm --filter @secretpad/app dev
+corepack pnpm --filter @privahub/app dev
 
 # Build all packages and the main app
 corepack pnpm run build
@@ -281,32 +280,36 @@ corepack pnpm run lint
 | `secretflow/spec/extend/` | Generated Python protobuf bindings |
 | `tests/` | pytest suite, custom MPC test runner |
 
-### SecretPad Backend
-Multi-module Maven project under `org.secretflow.secretpad.*`:
+### Privahub Backend
+Go project under `github.com/fengzhizi319/privahub`:
 
-| Module | Responsibility |
+| Directory | Purpose |
 |---|---|
-| `secretpad-common` | Utilities, exceptions, enums, constants |
-| `secretpad-persistence` | JPA entities (`*DO`), repositories, Flyway, data sync |
-| `secretpad-manager` | Integration managers (Kuscia, data, node, job, serving) |
-| `secretpad-service` | Business logic, DTOs/VOs, DAG graph building |
-| `secretpad-scheduled` | Quartz scheduled jobs |
-| `secretpad-api` | Generated gRPC clients (`client-java-kusciaapi`) |
-| `secretpad-web` | Spring Boot main app, controllers, filters, interceptors |
-| `test` | Aggregate Jacoco coverage |
+| `cmd/server/` | CLI entry point for the main server binary |
+| `cmd/migrator/` | Database migration utility |
+| `cmd/edge-agent/` | Edge/lite mode agent binary |
+| `internal/controller/http/` | HTTP handlers / routers (`/api/v1alpha1/*`) |
+| `internal/service/` | Business logic |
+| `internal/dao/` | Database access layer (GORM models, migrations, repositories) |
+| `internal/wire/` | Dependency injection wiring |
+| `pkg/kuscia/` | KusciaAPI gRPC client and helpers |
+| `pkg/config/` | Viper-based configuration loading |
+| `pkg/logger/` | Zap logger setup |
+| `config/` | YAML configuration files |
+| `deployments/` | Docker / K8s deployment manifests |
 
-REST controllers live under `/api/v1alpha1/`. Config YAMLs are at `config/` (not under `src/main/resources`).
+Config files live under `config/`.
 
-### SecretPad Frontend (`secretpad/web/`)
+### Privahub Frontend (`privahub/web/`)
 pnpm workspace monorepo:
 
 | Directory | Purpose |
 |---|---|
-| `apps/secretpad/` | Main SecretPad web app (Vite 5 + React 18) |
-| `packages/design-system/` | `@secretpad/design-system` component library |
-| `packages/api-client/` | `@secretpad/api-client` API schemas and mock client |
-| `packages/dag-next/` | `@secretpad/dag-next` DAG canvas engine |
-| `packages/utils/` | `@secretpad/utils` shared utilities |
+| `apps/privahub/` | Main Privahub web app (Vite 5 + React 18) |
+| `packages/design-system/` | `@privahub/design-system` component library |
+| `packages/api-client/` | `@privahub/api-client` API schemas and mock client |
+| `packages/dag-next/` | `@privahub/dag-next` DAG canvas engine |
+| `packages/utils/` | `@privahub/utils` shared utilities |
 | `tooling/tsconfig/` | Shared TypeScript configs |
 
 ---
@@ -329,22 +332,21 @@ pnpm workspace monorepo:
 - Docstrings are often Numpy-style and bilingual.
 - Every file starts with an Apache-2.0 Ant Group copyright header.
 
-### SecretPad Backend (Java)
-- Java 17 syntax; Lombok is enabled.
-- Package naming: `org.secretflow.secretpad.<module>.<feature>`.
-- Entities suffix `DO` (e.g. `ProjectDO`); repositories extend `BaseRepository`.
-- Service implementations go in `impl/` packages.
-- Controllers are `@RestController` under `/api/v1alpha1/`.
-- DTOs use Lombok `@Builder`, `@Getter`, `@Setter`, `@ToString`.
-- All files start with an Apache-2.0 license header.
+### Privahub Backend (Go)
+- Run `make fmt` (`go fmt ./...`) before committing.
+- Imports grouped with `local-prefixes: github.com/fengzhizi319/privahub` (golangci-lint).
+- Every file must have an Apache-2.0 license header.
+- Use `pkg/errors` style wrapping; HTTP handlers return standard JSON errors.
+- Prefer constructors + interfaces for dependency injection.
+- Table-driven tests with `testify` and `gomock`/`go.uber.org/mock`.
+- Pre-commit hooks: gitleaks, golangci-lint, shellcheck, trailing-whitespace.
 
-### SecretPad Frontend (TypeScript/React)
+### Privahub Frontend (TypeScript/React)
 - **Prettier**: printWidth 88, singleQuote, trailingComma all.
-- **ESLint**: `@secretflow/config-eslint` + project root overrides.
-- **Stylelint**: for `.less` files.
+- **ESLint**: project root `eslint.config.js` + workspace overrides.
 - Conventional Commits enforced by Husky/commitlint.
-- lint-staged runs prettier, stylelint, eslint on commit.
-- State management uses Valtio via `src/util/valtio-helper.ts` (not Dva).
+- lint-staged runs prettier, eslint on commit.
+- State management uses **Zustand**.
 
 ---
 
@@ -366,21 +368,20 @@ python -m pytest tests/ -n auto --env=prod     # parallel
 ```
 MPC tests marked `@pytest.mark.mpc(parties=[...])` are executed in spawned child processes. Configuration fixtures are in `tests/conftest.py`, `tests/sf_fixtures.py`, `tests/sf_config.py`.
 
-### SecretPad Backend
+### Privahub Backend
 ```bash
-mvn clean test
-mvn test -pl secretpad-web -Dtest=ProjectControllerTest
+CGO_ENABLED=1 go test ./...
+# or by package
+CGO_ENABLED=1 go test ./internal/service/...
 ```
-Tests use JUnit 5, Mockito, Spring Boot Test. The `test` profile disables auth and uses SQLite/H2. `ControllerTest` runs `scripts/test/setup.sh` before all tests to generate certificates.
+Tests use `testify`, `gomock`/`go.uber.org/mock`, and `sqlmock`/`gorm` where applicable.
 
-### SecretPad Frontend
+### Privahub Frontend
 ```bash
-pnpm test
-pnpm --filter secretpad test
-pnpm --filter @secretflow/utils test
-pnpm --filter @secretflow/dag test
+corepack pnpm test
+corepack pnpm --filter @privahub/app test
 ```
-Jest config uses `ts-jest`, `jsdom`, `identity-obj-proxy` for CSS/Less/SVG.
+Vitest config uses `jsdom`, `msw`, and `identity-obj-proxy` for CSS/SVG.
 
 ---
 
@@ -392,19 +393,17 @@ The script at `/home/charles/code/sfwork/scripts/run-all-no-docker.sh` boots eve
 1. Activate conda env `sf310` and build/install local SecretFlow (`pip install -e ./secretflow`)
 2. Build Kuscia binary (`kuscia/hack/build.sh -t kuscia`)
 3. Start Kuscia Master via `kuscia/scripts/run_local_kuscia.sh` master (requires sudo for ports 53/80)
-4. Build SecretPad backend (`mvn clean install -Dmaven.test.skip=true`)
-5. Generate certificates (`secretpad/scripts/test/setup.sh`)
-6. Start SecretPad backend
-7. Start SecretPad frontend
+4. Build Privahub backend (`CGO_ENABLED=1 go build -o bin/privahub ./cmd/server`)
+5. Start Privahub backend with `./config/privahub.yaml`
+6. Start Privahub frontend
 
 Default local ports:
 
 | Service | Port | Notes |
 |---|---|---|
-| SecretPad frontend dev server | 8000 | Umi dev, proxies `/api` to backend |
-| SecretPad backend HTTP | 8080 | Spring Boot `server.http-port` |
-| SecretPad backend HTTPS | 8443 | Spring Boot `server.port` |
-| SecretPad inner API | 9001 | `server.http-port-inner` |
+| Privahub frontend dev server | 8000 | Vite dev, proxies `/api` to backend |
+| Privahub backend HTTP | 8080 | Go HTTP server |
+| Privahub inner API | 9001 | cluster-internal port (no auth) |
 | Kuscia API gRPC | 8083 | internal, non-Docker mode |
 | Kuscia Envoy internal | 80 | non-Docker mode |
 | CoreDNS | 53 | requires root |
@@ -413,19 +412,20 @@ Dev login: `admin` / `12345678`.
 
 ### Local development with Docker Kuscia
 
-When Kuscia master + alice + bob are running via local Docker with host port mappings (as in the current setup), use these connection parameters for SecretPad backend:
+When Kuscia master + alice + bob are running via local Docker with host port mappings (as in the current setup), use these connection parameters for Privahub backend:
 
-| Env Var | Value | Notes |
+| Config / Env Var | Value | Notes |
 |---|---|---|
-| `KUSCIA_API_ADDRESS` | `127.0.0.1` | Kuscia API gRPC host |
-| `KUSCIA_API_PORT` | `18083` | Mapped from container port 8083 |
-| `KUSCIA_GW_ADDRESS` | `127.0.0.1:13081` | Mapped from container Envoy port 80/1080 |
-| `KUSCIA_PROTOCOL` | `notls` | Dev profile, no mTLS |
+| `kuscia.api_address` / `PRIVAHUB_KUSCIA_API_ADDRESS` | `127.0.0.1` | Kuscia API gRPC host |
+| `kuscia.api_port` / `PRIVAHUB_KUSCIA_API_PORT` | `18083` | Mapped from container port 8083 |
+| `kuscia.gateway` / `PRIVAHUB_KUSCIA_GATEWAY` | `127.0.0.1:18080` | 容器 Envoy 跨域网关端口 1080 映射到宿主机 18080（非 Docker 模式下使用 80） |
+| `kuscia.protocol` / `PRIVAHUB_KUSCIA_PROTOCOL` | `notls` | Dev profile, no mTLS |
 
-Backend data path should point to the host bind mount of Kuscia master data, e.g.:
+Use the dev profile to apply these defaults automatically:
 
 ```bash
--Dsecretpad.data.dir-path=/home/charles/kuscia/master/data/
+export PRIVAHUB_PROFILE=dev
+./bin/privahub -config ./config/privahub.yaml
 ```
 
 The startup helper `scripts/dev-start.sh` sets this automatically.
@@ -442,7 +442,7 @@ The startup helper `scripts/dev-start.sh` sets this automatically.
 | ConfManager gRPC | 8061 |
 | Reporter HTTP | 8050 |
 | Transport gRPC | 9090 |
-| Gateway public | 1080 |
+| Gateway public (Envoy 跨域网关) | 1080 |
 | Gateway internal | 80 |
 
 ---
@@ -452,8 +452,8 @@ The startup helper `scripts/dev-start.sh` sets this automatically.
 ### Docker (production)
 - **Kuscia**: `scripts/deploy/start_standalone.sh center|p2p|cxc|cxp`, or `scripts/deploy/deploy.sh master|lite|autonomy ...`.
 - **SecretFlow**: release/dev/GPU Docker images under `docker/release/` and `docker/dev/`.
-- **SecretPad**: `make image` (builds `secretpad.jar` + frontend + Anolis image).
-- **All-in-one offline package**: `secretpad/scripts/pack/pack_allinone.sh` bundles Kuscia/SecretPad/SecretFlow/Serving/DataProxy/SCQL/TEE images.
+- **Privahub**: `make image` (builds `bin/privahub` + frontend + container image).
+- **All-in-one offline package**: legacy `privahub/scripts/pack/pack_allinone.sh` is no longer maintained for the new Go backend; use the per-project Docker images instead.
 
 ### Non-Docker (development)
 Use `run-all-no-docker.sh`, or manually:
@@ -474,30 +474,19 @@ bash hack/build.sh -t kuscia
 export KUSCIA_HOME="/home/charles/code/sfwork/.local-kuscia"
 sudo bash scripts/run_local_kuscia.sh master
 
-# 4. Build SecretPad backend
-cd /home/charles/code/sfwork/secretpad
-mvn clean install -Dmaven.test.skip=true
+# 4. Build Privahub backend
+cd /home/charles/code/sfwork/privahub
+CGO_ENABLED=1 go build -o bin/privahub ./cmd/server
 
-# 5. Generate certs
-rm -f config/server.jks
-rm -rf config/certs/
-bash scripts/test/setup.sh
+# 5. Start Privahub backend (adjust profile for Docker vs non-Docker Kuscia)
+export PRIVAHUB_PROFILE=dev   # dev profile uses Docker-mapped Kuscia ports
+./bin/privahub -config ./config/privahub.yaml
 
-# 6. Start SecretPad backend (adjust ports for Docker Kuscia vs non-Docker)
-export KUSCIA_API_ADDRESS=127.0.0.1
-export KUSCIA_API_PORT=18083      # use 8083 for non-Docker Kuscia
-export KUSCIA_GW_ADDRESS=127.0.0.1:13081  # use 127.0.0.1:80 for non-Docker
-export KUSCIA_PROTOCOL=notls
-java -Dspring.profiles.active=dev \
-     -Dsun.net.http.allowRestrictedHeaders=true \
-     -Dserver.port=8443 \
-     -Dsecretpad.data.dir-path=/home/charles/kuscia/master/data/ \
-     -jar target/secretpad.jar
-
-# 7. Start SecretPad frontend
-cd /home/charles/code/sfwork/secretpad/web
+# 7. Start Privahub frontend
+cd /home/charles/code/sfwork/privahub/web
+corepack enable
 corepack pnpm install
-corepack pnpm --filter @secretpad/app dev
+corepack pnpm --filter @privahub/app dev
 ```
 
 Stop everything with `bash /home/charles/code/sfwork/scripts/run-all-no-docker.sh --stop`.
@@ -506,13 +495,13 @@ Stop everything with `bash /home/charles/code/sfwork/scripts/run-all-no-docker.s
 
 ## 10. Security Considerations
 
-- **mTLS**: Kuscia uses mTLS for cross-domain communication and KusciaAPI in production. The `dev` profile uses `KUSCIA_PROTOCOL=notls`.
-- **Certificates**: `secretpad/scripts/test/setup.sh` generates dev CA/client certs and `config/server.jks`. Never commit these.
-- **Authentication**: SecretPad uses a custom `LoginInterceptor` + token DB, not Spring Security.
+- **mTLS**: Kuscia uses mTLS for cross-domain communication and KusciaAPI in production. The `dev` profile uses `kuscia.protocol=notls`.
+- **Certificates**: Privahub development mode uses `notls` and does not require Java/JKS certificates. Production deployments should configure TLS certificates and keep them out of version control.
+- **Authentication**: Privahub uses JWT tokens + user/token database (not Spring Security).
 - **Authorization**: Kuscia uses Casbin; DataMesh enforces domaindata grants.
 - **Secrets**: gitleaks runs in Kuscia pre-commit hooks. Do not hard-code passwords, tokens, or cert keys.
 - **sudo**: Local Kuscia needs root for CoreDNS port 53. The helper script uses `sudo` internally.
-- **Sensitive files**: `.env` for frontend proxy URL is gitignored. Certificates under `config/certs/` and `.local-kuscia/var/certs/` are local-only.
+- **Sensitive files**: Frontend `.env` proxy config is gitignored. Kuscia certificates under `.local-kuscia/var/certs/` are local-only.
 
 ---
 
@@ -520,8 +509,8 @@ Stop everything with `bash /home/charles/code/sfwork/scripts/run-all-no-docker.s
 
 When modifying code, understand which layer owns the contract:
 
-- **Frontend ↔ Backend**: REST JSON under `/api/v1alpha1/*`. DTOs live in `secretpad-service`.
-- **Backend ↔ Kuscia**: gRPC via generated clients in `secretpad-api/client-java-kusciaapi`. Env vars control the connection.
+- **Frontend ↔ Backend**: REST JSON under `/api/v1alpha1/*`. DTOs/VOs live in `privahub/internal/controller/http` and `privahub/internal/service`.
+- **Backend ↔ Kuscia**: gRPC via the Kuscia client in `privahub/pkg/kuscia`. Config (`config/privahub*.yaml`) or `PRIVAHUB_*` env vars control the connection.
 - **Kuscia ↔ SecretFlow**: Kuscia schedules containerized SecretFlow tasks; SecretFlow reads `DomainData` via DataMesh.
 - **DataMesh ↔ SecretFlow**: gRPC + Apache Arrow Flight; `secretflow/kuscia/datamesh.py` is the client.
 - **Protobuf contracts**: Shared `.proto` files are in `kuscia/proto/` and `secretflow/protos/`. Changing a proto requires regenerating stubs in all consuming languages.
@@ -532,10 +521,10 @@ When modifying code, understand which layer owns the contract:
 
 1. **Start from the root**: `/home/charles/code/sfwork`.
 2. **Choose a launcher**:
-   - Non-Docker all-in-one: `bash scripts1/run-all-no-docker.sh`
-   - Docker Kuscia + local backend/frontend: `bash scripts1/dev-start.sh`
-3. **Make backend changes**: `cd secretpad && mvn clean install -Dmaven.test.skip=true`, restart backend.
-4. **Make frontend changes**: `cd secretpad/web && corepack pnpm --filter @secretpad/app dev` supports hot reload.
+   - Non-Docker all-in-one: `bash scripts/run-all-no-docker.sh`
+   - Docker Kuscia + local backend/frontend: `bash scripts/dev-start.sh`
+3. **Make backend changes**: `cd privahub && CGO_ENABLED=1 go build -o bin/privahub ./cmd/server`, restart backend.
+4. **Make frontend changes**: `cd privahub/web && corepack enable && corepack pnpm --filter @privahub/app dev` supports hot reload.
 5. **Make Kuscia changes**: `cd kuscia && bash hack/build.sh -t kuscia`, then restart Kuscia Master.
 6. **Run tests** in the relevant subproject before committing.
 7. **Check logs**: `logs/kuscia-master.log`, `logs/backend.log`, `logs/frontend.log`, plus per-project log directories.
@@ -550,16 +539,16 @@ When modifying code, understand which layer owns the contract:
 | Test Kuscia | `cd kuscia && make test` |
 | Build SecretFlow wheel | `cd secretflow && python -m build --wheel` |
 | Test SecretFlow | `cd secretflow && python -m pytest tests/ --env=prod -v` |
-| Build SecretPad jar | `cd secretpad && mvn clean package -DskipTests` |
-| Test SecretPad | `cd secretpad && mvn clean test` |
-| Build SecretPad image | `cd secretpad && make image` |
-| Install frontend deps | `cd secretpad/web && corepack pnpm install` |
-| Dev frontend | `cd secretpad/web && corepack pnpm --filter @secretpad/app dev` |
-| Test frontend | `cd secretpad/web && corepack pnpm test` |
-| Run all locally (non-Docker) | `bash /home/charles/code/sfwork/scripts1/run-all-no-docker.sh` |
-| Stop all locally (non-Docker) | `bash /home/charles/code/sfwork/scripts1/run-all-no-docker.sh --stop` |
-| Start with Docker Kuscia | `bash /home/charles/code/sfwork/scripts1/dev-start.sh` |
-| Stop Docker Kuscia setup | `bash /home/charles/code/sfwork/scripts1/dev-stop.sh` |
+| Build Privahub backend | `cd privahub && CGO_ENABLED=1 go build -o bin/privahub ./cmd/server` |
+| Test Privahub backend | `cd privahub && CGO_ENABLED=1 go test ./...` |
+| Build Privahub image | `cd privahub && make image` |
+| Install frontend deps | `cd privahub/web && corepack enable && corepack pnpm install` |
+| Dev frontend | `cd privahub/web && corepack pnpm --filter @privahub/app dev` |
+| Test frontend | `cd privahub/web && corepack pnpm test` |
+| Run all locally (non-Docker) | `bash /home/charles/code/sfwork/scripts/run-all-no-docker.sh` |
+| Stop all locally (non-Docker) | `bash /home/charles/code/sfwork/scripts/run-all-no-docker.sh --stop` |
+| Start with Docker Kuscia | `bash /home/charles/code/sfwork/scripts/dev-start.sh` |
+| Stop Docker Kuscia setup | `bash /home/charles/code/sfwork/scripts/dev-stop.sh` |
 | Test privacy-java-sdk | `cd privacy-java-sdk && mvn test` |
 | Test privacy-go-sdk | `cd privacy-go-sdk && go test ./...` |
 | Test privacy-local-agent | `cd privacy-local-agent && PYTHONPATH=. pytest tests -q` |

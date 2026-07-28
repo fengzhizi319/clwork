@@ -51,52 +51,51 @@ This document provides an overview of the projects within the sfwork workspace, 
 - **Async/Await**: Asynchronous programming for I/O operations
 - **Testing**: Unit tests using pytest with fixtures and parameterized tests
 
-### 3. SecretPad
-**Description**: SecretPad is the web-based management console for the SecretFlow ecosystem. It provides a user-friendly interface for data management, federated learning task creation, and result visualization. It handles business logic, persistence, and communication with Kuscia.
+### 3. Privahub
+**Description**: Privahub is the web-based management console for the SecretFlow ecosystem, reimplemented in Go. It provides a user-friendly interface for data management, federated learning task creation, and result visualization. It handles business logic, persistence (SQLite/MySQL), and communication with Kuscia.
 
-**Primary Language**: Java
+**Primary Language**: Go
 
 **Key Components**:
-- API Layer: RESTful APIs for frontend communication
-- Service Layer: Business logic and workflow orchestration
-- Persistence Layer: Database interactions and entity management
-- Manager Layer: Domain-specific operations and validation
-- Web Layer: Controller layer for request handling
-- Common: Shared utilities, enums, and constants
+- API Layer: RESTful APIs for frontend communication (`/api/v1alpha1/*`)
+- Service Layer: Business logic and workflow orchestration (`internal/service/`)
+- Persistence Layer: GORM models, repositories, and migrations (`internal/dao/`)
+- Kuscia Client: gRPC client for KusciaAPI (`pkg/kuscia/`)
+- Web Layer: HTTP handlers and routers (`internal/controller/http/`)
+- Configuration: Viper-based configs with profile support (`config/secretpad*.yaml`)
 
 **Common Programming Techniques**:
-- **Spring Framework**: Dependency injection, transaction management, and MVC architecture
-- **MyBatis**: SQL mapping and database interaction
-- **Spring Boot**: Auto-configuration and embedded server capabilities
-- **MVC Pattern**: Clear separation of concerns between models, views, and controllers
-- **Exception Handling**: Custom exception hierarchy with global exception handler
-- **Validation**: Bean validation with JSR-303 annotations
-- **Configuration Properties**: Type-safe configuration properties
-- **Transaction Management**: Declarative transaction handling with @Transactional
-- **Security**: Authentication and authorization mechanisms
-- **Testing**: Unit and integration testing with JUnit and Mockito
+- **Gin Framework**: HTTP routing and middleware
+- **GORM**: ORM for SQLite/MySQL with migration support
+- **Dependency Injection**: Wire-generated constructors and interfaces
+- **Error Handling**: Structured error wrapping
+- **Configuration**: Viper with environment variable overrides
+- **Logging**: Zap structured logging
+- **Authentication**: JWT token-based auth
+- **Testing**: Unit tests with `testify`, `gomock`, and database/sqlmock
 
-### 4. SecretPad Frontend
-**Description**: The frontend component of SecretPad built with modern web technologies. It provides an intuitive user interface for managing privacy-preserving computations, visualizing data flows, and monitoring job progress.
+### 4. Privahub Frontend
+**Description**: The frontend component of Privahub built with modern web technologies. It provides an intuitive user interface for managing privacy-preserving computations, visualizing data flows, and monitoring job progress.
 
 **Primary Languages**: TypeScript, JavaScript
 
 **Key Technologies**:
 - **React**: Component-based UI architecture
-- **Umi**: Pluggable enterprise-level React application framework
-- **Ant Design**: Enterprise-class UI design system
-- **ESLint/Stylelint**: Code quality and style enforcement
-- **Husky/Lint-staged**: Git hooks for code quality
-- **Nx**: Monorepo management
+- **Vite**: Fast build tool and dev server
+- **Tailwind CSS**: Utility-first CSS framework
+- **TypeScript**: Static type checking
+- **Zustand**: State management
+- **Vitest**: Unit testing framework
+- **pnpm workspace**: Monorepo package management
 
 **Common Programming Techniques**:
 - **Component-Based Architecture**: Reusable and modular UI components
 - **Hooks**: State management and side effects with React hooks
 - **TypeScript**: Static type checking for improved code reliability
-- **State Management**: Context API and potential Redux/Zustand for global state
+- **State Management**: Zustand for global state
 - **Asynchronous Operations**: Promise/async-await for API calls
 - **Module Bundling**: ES modules and tree shaking for optimization
-- **Testing**: Jest and React Testing Library for unit and integration tests
+- **Testing**: Vitest and React Testing Library for unit and integration tests
 - **Form Handling**: Form libraries for data collection and validation
 - **Internationalization**: Multi-language support
 
@@ -125,8 +124,8 @@ This document provides an overview of the projects within the sfwork workspace, 
 
 The projects work together in the following way:
 
-1. **Frontend (TypeScript/React)** communicates with **SecretPad Backend (Java)**
-2. **SecretPad Backend (Java)** orchestrates with **Kuscia (Go)** via APIs
+1. **Frontend (TypeScript/React)** communicates with **Privahub Backend (Go)**
+2. **Privahub Backend (Go)** orchestrates with **Kuscia (Go)** via APIs
 3. **Kuscia (Go)** manages the execution environment and coordinates with **SecretFlow (Python)**
 4. **SecretFlow (Python)** performs actual privacy-preserving computations
 5. **DataMesh (Go)** provides secure data access across domains

@@ -1,11 +1,13 @@
 # 无 Docker 运行说明
 
-本文档说明如何在不使用 Docker 的前提下，直接基于 `sfwork` 目录下的本地源码运行 SecretPad 前端、SecretPad 后端、Kuscia 以及 SecretFlow。该方式适用于本地二次开发和源码调试。
+本文档说明如何在不使用 Docker 的前提下，直接基于 `sfwork` 目录下的本地源码运行 Privahub 前端、Privahub 后端、Kuscia 以及 SecretFlow。该方式适用于本地二次开发和源码调试。
 
 > **注意**：
-> - 本方案不使用任何 Docker 镜像来运行 Kuscia / SecretPad / SecretFlow。
+> - 本方案不使用任何 Docker 镜像来运行 Kuscia / Privahub / SecretFlow。
 > - SecretFlow 通过 conda 环境 `sf310` 以可编辑模式（`pip install -e .`）安装本地源码。
 > - Kuscia 使用本地编译的 `kuscia` 二进制（`kuscia/scripts/run_local_kuscia.sh`）启动。
+> - Privahub 后端使用 Go 源码本地编译启动（需要 CGO 支持 SQLite）。
+> - Privahub 前端源码位于 `privahub/web/`，使用 pnpm workspace + Vite。
 > - 实际执行隐私计算任务时，Kuscia 仍需要 AppImage 与容器运行时（containerd/runc/runp）；如需完全无容器运行任务，请参考 Kuscia `runp` 运行时文档额外配置。
 
 ## 目录
@@ -23,27 +25,23 @@
 
 | 组件 | 版本要求 | 说明 |
 |------|---------|------|
-| JDK | 17 | SecretPad 后端运行与编译 |
-| Maven | 3.8.8+ | SecretPad 后端编译 |
-| Node.js | >= 16.14.0（推荐 v20+） | SecretPad 前端运行 |
-| pnpm | 8.8.0 | SecretPad 前端包管理 |
-| Go | 1.24+ | Kuscia 编译（与 `kuscia/go.mod` 保持一致） |
-| gcc / g++ | 任意 | Kuscia / SecretFlow 编译依赖 |
+| Go | 1.25+ | Privahub 后端编译与运行 |
+| Node.js | >= 18（推荐 v22+） | Privahub 前端运行 |
+| pnpm | 11.7.0 | 由 `privahub/web/package.json` 的 `packageManager` 管理 |
+| gcc / g++ | 任意 | Kuscia / Privahub SQLite 驱动编译依赖 |
 | git | 任意 | 版本管理 |
-| openssl | 任意 | 证书生成 |
+| openssl | 任意 | 证书生成（可选，开发模式 notls 不强制） |
 | conda（Miniconda/Anaconda） | 任意 | 管理 SecretFlow Python 环境 `sf310` |
 | sudo | 可用 | Kuscia Master 需要监听 53 / 80 等特权端口 |
 
-**不需要 Docker。**
+**不需要 JDK、Maven 或 Docker。**
 
 验证命令：
 
 ```bash
-java -version                 # openjdk 17
-mvn -version                  # Apache Maven 3.x
-node -v                       # v20+ 或 v18+
-pnpm -v                       # 8.8.0
-go version                    # go1.24+
+go version                    # go1.25+
+node -v                       # v22+ 或 v18+
+corepack pnpm -v              # 需先 corepack enable，版本应 >= 11.7.0
 gcc --version
 openssl version
 conda info --base
@@ -61,11 +59,11 @@ conda env list | grep sf310   # 确认 sf310 环境存在
 │   └── hack/build.sh               # Kuscia 编译脚本
 ├── secretflow/                     # SecretFlow Python 源码
 │   └── pyproject.toml
-├── secretpad/                      # SecretPad Java 后端 + 前端
-│   ├── scripts/test/setup.sh       # 开发证书生成
-│   ├── config/application-dev.yaml
-│   ├── frontend-src/               # React 前端源码
-│   └── target/secretpad.jar        # Maven 构建产物
+├── privahub/                       # Privahub Go 后端 + React/Vite 前端
+│   ├── cmd/server/                 # 主服务入口
+│   ├── config/privahub.yaml       # 非 Docker 模式配置
+│   ├── web/                        # 前端源码（pnpm workspace）
+│   └── bin/privahub                # Go 构建产物
 ├── .local-kuscia/                  # Kuscia 本地运行时数据（自动创建）
 ├── logs/                           # 聚合日志目录
 └── scripts/run-all-no-docker.sh    # 一键启动脚本
@@ -88,10 +86,9 @@ conda activate sf310
 2. 在 `sf310` 环境中可编辑安装本地 SecretFlow
 3. 编译本地 Kuscia 二进制
 4. 启动本地 Kuscia Master（无 Docker）
-5. 编译本地 SecretPad 后端
-6. 生成开发证书
-7. 启动 SecretPad 后端
-8. 启动 SecretPad 前端
+5. 编译本地 Privahub 后端（Go，需要 CGO）
+6. 启动 Privahub 后端
+7. 启动 Privahub 前端
 
 ### 2.1 赋予脚本执行权限
 
@@ -182,64 +179,60 @@ echo "111111" | sudo -S bash /home/charles/code/sfwork/kuscia/scripts/run_local_
 | 服务 | 端口 | 说明 |
 |------|------|------|
 | Kuscia API HTTP | 8082 | 外部 HTTP API |
-| Kuscia API gRPC | 8083 | SecretPad 后端连接端口 |
+| Kuscia API gRPC | 8083 | Privahub 后端连接端口 |
 | Kuscia API HTTP Internal | 8092 | 内部 HTTP API |
 | Envoy 内部端口 | 80 | 节点间通信 / Gateway |
 | CoreDNS | 53 | 需要 root 权限 |
 
-### 3.4 编译 SecretPad 后端
+### 3.4 编译 Privahub 后端
 
 ```bash
-cd /home/charles/code/sfwork/secretpad
-mvn clean install -Dmaven.test.skip=true
+cd /home/charles/code/sfwork/privahub
+
+# 编译（CGO 必须启用，因为默认 SQLite 驱动为 mattn/go-sqlite3）
+CGO_ENABLED=1 go build -o bin/privahub ./cmd/server
+
+# 验证编译结果
+ls -lh bin/privahub
+./bin/privahub -version
 ```
 
-构建成功后会在 `target/` 目录下生成 `secretpad.jar`。
+构建成功后会在 `bin/` 目录下生成 `privahub` 可执行文件。
 
-### 3.5 生成证书
+### 3.5 启动 Privahub 后端
+
+非 Docker 本地模式下，`privahub/config/privahub.yaml` 已配置 Kuscia gRPC 端口为 `8083`、协议为 `notls`，直接启动即可：
 
 ```bash
-cd /home/charles/code/sfwork/secretpad
+cd /home/charles/code/sfwork/privahub
 
-# 清理可能存在的旧证书
-rm -f config/server.jks
-rm -rf config/certs/
-
-# 生成新证书
-bash scripts/test/setup.sh
+# 使用默认基础配置（非 Docker 模式）
+./bin/privahub -config ./config/privahub.yaml
 ```
 
-### 3.6 启动 SecretPad 后端
+启动后占用端口：
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| Privahub 后端 HTTP | 8080 | 前端与外部 API |
+| Privahub 内部 API | 9001 | 集群内部无认证接口 |
+| gRPC（当前预留） | 9090 | 暂未连接外部服务 |
+
+> 注意：`config/secretpad*.yaml` 文件名沿用历史 `secretpad` 命名，实际为 Privahub 后端配置。
+
+### 3.6 启动 Privahub 前端
 
 ```bash
-cd /home/charles/code/sfwork/secretpad
+cd /home/charles/code/sfwork/privahub/web
 
-# 非 Docker 本地模式必须设置以下环境变量
-export KUSCIA_API_ADDRESS=127.0.0.1
-export KUSCIA_API_PORT=8083          # 本地 Kuscia gRPC 默认端口
-export KUSCIA_GW_ADDRESS=127.0.0.1:80 # 本地 Kuscia Envoy 内部端口
-export KUSCIA_PROTOCOL=notls
-
-java \
-  -Dspring.profiles.active=dev \
-  -Dsun.net.http.allowRestrictedHeaders=true \
-  -Dserver.port=8443 \
-  -jar target/secretpad.jar
-```
-
-### 3.7 启动 SecretPad 前端
-
-```bash
-cd /home/charles/code/sfwork/secretpad/frontend-src
-
-# 确保代理指向后端 HTTP 端口
-echo "PROXY_URL=http://127.0.0.1:8080" > apps/platform/.env
+# 启用 corepack 以使用项目指定的 pnpm 11.7.0
+corepack enable
 
 # 首次运行安装依赖
-pnpm bootstrap
+corepack pnpm install
 
-# 启动开发服务器
-pnpm --filter secretpad dev
+# 启动开发服务器（Vite 默认监听 8000，代理 /api 到后端 8080）
+corepack pnpm --filter @secretpad/app dev
 ```
 
 ## 4. 停止服务
@@ -257,8 +250,8 @@ SUDO_PWD="111111" bash /home/charles/code/sfwork/scripts/run-all-no-docker.sh --
 kill $(lsof -t -i:8000) 2>/dev/null || true
 
 # 停止后端
-kill $(lsof -t -i:8443) 2>/dev/null || true
 kill $(lsof -t -i:8080) 2>/dev/null || true
+kill $(lsof -t -i:9001) 2>/dev/null || true
 
 # 停止 Kuscia Master（通过自带脚本）
 export KUSCIA_HOME="/home/charles/code/sfwork/.local-kuscia"
@@ -298,7 +291,7 @@ conda create -n sf310 python=3.10 -y
 
 ```bash
 # 检查关键端口
-for p in 53 80 8080 8082 8083 8092 8443 8000; do
+for p in 53 80 8080 8082 8083 8092 9001 8000; do
   echo "Port $p:"
   sudo ss -tlnp | grep ":$p\b" || echo "  空闲"
 done
@@ -347,24 +340,29 @@ cat /home/charles/code/sfwork/logs/kuscia-master.log
 - 权限不足：未使用 sudo 或 sudo 密码错误
 - K3s 初始化失败：检查 `.local-kuscia/var/logs/kuscia.log` 中的 k3s 相关错误
 
-### 5.6 SecretPad 后端连接 Kuscia 失败
+### 5.6 Privahub 后端连接 Kuscia 失败
 
-确认环境变量：
+确认配置文件：
 
 ```bash
-echo "KUSCIA_API_ADDRESS=$KUSCIA_API_ADDRESS"
-echo "KUSCIA_API_PORT=$KUSCIA_API_PORT"
-echo "KUSCIA_GW_ADDRESS=$KUSCIA_GW_ADDRESS"
-echo "KUSCIA_PROTOCOL=$KUSCIA_PROTOCOL"
+cat /home/charles/code/sfwork/privahub/config/privahub.yaml
 ```
 
-非 Docker 本地模式下应为：
+非 Docker 本地模式下关键字段应为：
 
-```text
-KUSCIA_API_ADDRESS=127.0.0.1
-KUSCIA_API_PORT=8083
-KUSCIA_GW_ADDRESS=127.0.0.1:80
-KUSCIA_PROTOCOL=notls
+```yaml
+kuscia:
+  api_address: "127.0.0.1"
+  api_port: 8083
+  protocol: "notls"
+```
+
+或使用环境变量覆盖（Viper 自动读取 `PRIVAHUB_*`）：
+
+```bash
+export PRIVAHUB_KUSCIA_API_ADDRESS=127.0.0.1
+export PRIVAHUB_KUSCIA_API_PORT=8083
+export PRIVAHUB_KUSCIA_PROTOCOL=notls
 ```
 
 测试 Kuscia API：
@@ -396,16 +394,19 @@ pip install -e .
 
 ### 5.8 前端代理不到后端
 
-检查 `.env` 文件：
+前端 Vite 配置通过环境变量 `API_PROXY_URL` 指定后端地址，默认已经是 `http://127.0.0.1:8080`。
+
+如需显式覆盖，启动前端时传入：
 
 ```bash
-cat /home/charles/code/sfwork/secretpad/frontend-src/apps/platform/.env
+cd /home/charles/code/sfwork/privahub/web
+API_PROXY_URL=http://127.0.0.1:8080 corepack pnpm --filter @secretpad/app dev
 ```
 
-应包含：
+或在 `privahub/web/apps/secretpad/.env.local` 中写入：
 
 ```text
-PROXY_URL=http://127.0.0.1:8080
+API_PROXY_URL=http://127.0.0.1:8080
 ```
 
 ## 6. 访问服务
@@ -414,9 +415,9 @@ PROXY_URL=http://127.0.0.1:8080
 
 | 服务 | 地址 |
 |------|------|
-| SecretPad 前端 | http://localhost:8000 |
-| 后端健康检查 | http://localhost:8080/actuator/health |
-| 后端 HTTPS | https://localhost:8443 |
+| Privahub 前端 | http://localhost:8000 |
+| 后端健康检查 | http://localhost:8080/api/v1alpha1/healthz |
+| 后端内部 API | http://localhost:9001 |
 | Kuscia API HTTP | http://localhost:8082 |
 
 登录账号：`admin` / `12345678`

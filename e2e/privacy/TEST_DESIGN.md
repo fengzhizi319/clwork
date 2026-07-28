@@ -1,6 +1,6 @@
 # Privacy 组件端到端测试设计文档
 
-> 目标：验证 `secretflow` 新增的 privacy 组件功能在 **前端 → SecretPad 后端 → Kuscia → SecretFlow** 全链路中可正确执行，并与直接调用 SecretFlow `comp_eval` 的结果一致。
+> 目标：验证 `secretflow` 新增的 privacy 组件功能在 **前端 → Privahub 后端 → Kuscia → SecretFlow** 全链路中可正确执行，并与直接调用 SecretFlow `comp_eval` 的结果一致。
 >
 > 覆盖组件：
 > - `differential_privacy:1.1.0`（新增 `noisy_count`、`noisy_sum`、`noisy_mean`、`noisy_histogram`、`chunked_*` 等查询类型）
@@ -21,7 +21,7 @@
 | 层级 | 验证点 |
 |------|--------|
 | **SecretFlow 组件** | 新增 `query_type`（`noisy_count`、`noisy_sum`、`noisy_mean`、`noisy_histogram`）与 `query_obfuscation.op=batch` 在本地 `comp_eval` 下结果正确。 |
-| **SecretPad 后端组件配置** | `secretpad/config/components/secretflow.json` 与 `config/i18n/secretflow.json` 包含 1.1.0 版本的新字段，后端 `/api/v1alpha1/component/list` 可返回正确组件定义。 |
+| **Privahub 后端组件配置** | `privahub/config/components/secretflow.json` 与 `config/i18n/secretflow.json` 包含 1.1.0 版本的新字段，后端 `/api/v1alpha1/component/list` 可返回正确组件定义。 |
 | **前端 DAG/模板** | 前端隐私场景页可加载新参数模板，`differential_privacy` 模板版本从 `1.0.0` 升级到 `1.1.0`，新增参数可预填充。 |
 | **全链路 E2E** | 通过 `e2e/privacy/run_e2e.py` 或前端一键执行模板，任务在 Kuscia + SecretFlow 中成功运行，结果与 `run_direct.py` 一致。 |
 
@@ -41,19 +41,19 @@
 
 | 组件 | 启动方式 | 访问地址 |
 |------|---------|----------|
-| Kuscia Master + Lite | `bash scripts/dev-start.sh`（Docker 模式） | gRPC `127.0.0.1:18083`，Gateway `127.0.0.1:13081` |
-| SecretPad 后端 | `mvn clean package -DskipTests` 后 `java -jar target/secretpad.jar` | `http://127.0.0.1:8080` / `https://127.0.0.1:8443` |
-| SecretPad 前端 | `cd secretpad/frontend-src && pnpm bootstrap && pnpm --filter secretpad dev` | `http://localhost:8000` |
+| Kuscia Master + Lite | `bash scripts/dev-start.sh`（Docker 模式） | gRPC `127.0.0.1:18083`，Gateway `127.0.0.1:18080` |
+| Privahub 后端 | `cd privahub && go build -o bin/privahub ./cmd/server` 后 `PRIVAHUB_PROFILE=dev ./bin/privahub -config ./config/privahub.yaml` | `http://127.0.0.1:8080` |
+| Privahub 前端 | `cd privahub/web && corepack pnpm --filter @secretpad/app dev` | `http://localhost:8000` |
 | SecretFlow | conda `sf310` 环境，`pip install -e ./secretflow` | 本地命令行直接调用 |
 
 ### 2.2 关键环境变量
 
-SecretPad 后端启动前需设置：
+Privahub 后端启动前需设置：
 
 ```bash
 export KUSCIA_API_ADDRESS=127.0.0.1
 export KUSCIA_API_PORT=18083
-export KUSCIA_GW_ADDRESS=127.0.0.1:13081
+export KUSCIA_GW_ADDRESS=127.0.0.1:18080
 export KUSCIA_PROTOCOL=notls
 ```
 
@@ -275,18 +275,18 @@ export KUSCIA_PROTOCOL=notls
 
 ## 6. 后端组件配置更新
 
-### 6.1 `secretpad/config/components/secretflow.json`
+### 6.1 `privahub/config/components/secretflow.json`
 
 当前文件中的 `differential_privacy`/`query_obfuscation` 为 1.0.0 旧定义，需要：
 
 1. 将 `differential_privacy` 升级到 `1.1.0`，补充新增字段。
 2. 将 `query_obfuscation` 升级到 `1.1.0`，补充 `op`/`queries_json`。
 
-**推荐做法**：运行 SecretFlow 容器或本地 `secretflow component inspect -a` 与 `secretflow component get_translation` 生成最新组件定义，然后替换到 `secretpad/config/components/secretflow.json` 与 `config/i18n/secretflow.json`。
+**推荐做法**：运行 SecretFlow 容器或本地 `secretflow component inspect -a` 与 `secretflow component get_translation` 生成最新组件定义，然后替换到 `privahub/config/components/secretflow.json` 与 `config/i18n/secretflow.json`。
 
 ### 6.2 翻译文件
 
-`secretflow/secretflow/component/translation.json` 已包含新增字段翻译，但 SecretPad 后端使用 `config/i18n/secretflow.json`。因此需要：
+`secretflow/secretflow/component/translation.json` 已包含新增字段翻译，但 Privahub 后端使用 `config/i18n/secretflow.json`。因此需要：
 
 1. 从 SecretFlow 生成最新 `sf_comp_translation.json`。
 2. 或手工同步 `translation.json` 中新增键到 `config/i18n/secretflow.json`。
@@ -317,7 +317,7 @@ python e2e/privacy/run_direct.py
 
 ### 7.3 完整链路运行（E2E）
 
-`run_e2e.py` 已支持通过 SecretPad REST API 执行参数文件。运行：
+`run_e2e.py` 已支持通过 Privahub REST API 执行参数文件。运行：
 
 ```bash
 python e2e/privacy/run_e2e.py
@@ -336,7 +336,7 @@ python e2e/privacy/run_e2e.py
 | 编号 | 验收项 | 通过标准 |
 |------|--------|----------|
 | A1 | SecretFlow 本地 `comp_eval` | 所有新增参数文件在 `run_direct.py` 中执行成功，结果符合预期。 |
-| A2 | SecretPad 后端组件列表 | `/api/v1alpha1/component/list` 返回 `differential_privacy:1.1.0` 与 `query_obfuscation:1.1.0`，字段完整。 |
+| A2 | Privahub 后端组件列表 | `/api/v1alpha1/component/list` 返回 `differential_privacy:1.1.0` 与 `query_obfuscation:1.1.0`，字段完整。 |
 | A3 | 前端组件树 | 前端隐私组件分类下能看到 `differential_privacy` 与 `query_obfuscation`，且参数面板包含新增字段。 |
 | A4 | 前端模板执行 | 隐私场景页点击“查询混淆”模板能创建项目并运行成功。 |
 | A5 | E2E 一致性 | `compare.py` 对比 direct 与 e2e 结果无差异（容差范围内）。 |
@@ -346,7 +346,7 @@ python e2e/privacy/run_e2e.py
 
 ## 9. 实现计划
 
-1. **后端配置**：更新 `secretpad/config/components/secretflow.json` 与 `config/i18n/secretflow.json`。
+1. **后端配置**：更新 `privahub/config/components/secretflow.json` 与 `config/i18n/secretflow.json`。
 2. **前端模板**：升级 `pipeline-template-privacy.ts` / `pipeline-template-privacy-guide.ts` 到 1.1.0；新增 `query_obfuscation` 模板并注册到协议与隐私场景页。
 3. **E2E 参数**：新增 5 个参数 JSON 文件。
 4. **本地验证**：运行 `run_direct.py`、`run_e2e.py`、`compare.py`，确保全部通过。
