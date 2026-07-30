@@ -1,113 +1,113 @@
 {
   "tabs": [
     {
-      "name": "result",
+      "desc": "",
       "divs": [
         {
           "children": [
             {
-              "type": "table",
               "table": {
+                "desc": "",
                 "headers": [
                   {
+                    "desc": "",
                     "name": "query_type",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "query_col",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "result",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "remaining_epsilon",
-                    "type": "float",
-                    "desc": ""
+                    "type": "float"
                   },
                   {
+                    "desc": "",
                     "name": "remaining_delta",
-                    "type": "float",
-                    "desc": ""
-                  }
-                ],
-                "rows": [
-                  {
-                    "name": "0",
-                    "items": [
-                      {
-                        "s": "noisy_count",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "1000.3269131067149",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
+                    "type": "float"
                   }
                 ],
                 "name": "",
-                "desc": ""
-              }
+                "rows": [
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "noisy_count",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "1000.3269131067149",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      }
+                    ],
+                    "name": "0"
+                  }
+                ]
+              },
+              "type": "table"
             }
           ],
-          "name": "",
-          "desc": ""
+          "desc": "",
+          "name": ""
         }
       ],
-      "desc": ""
+      "name": "result"
     }
   ]
 }

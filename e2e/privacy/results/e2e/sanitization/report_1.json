@@ -1,273 +1,273 @@
 {
   "tabs": [
     {
-      "name": "audit_alice",
+      "desc": "",
       "divs": [
         {
           "children": [
             {
-              "type": "table",
               "table": {
+                "desc": "",
                 "headers": [
                   {
+                    "desc": "",
                     "name": "party",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "column",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "method",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "affected_rows",
-                    "type": "int",
-                    "desc": ""
+                    "type": "int"
                   },
                   {
+                    "desc": "",
                     "name": "sample_before",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "sample_after",
-                    "type": "str",
-                    "desc": ""
-                  }
-                ],
-                "rows": [
-                  {
-                    "name": "0",
-                    "items": [
-                      {
-                        "s": "alice",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "mobile",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "mask_mobile",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "i64": "8",
-                        "f": 0.0,
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "13800138000",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "138****8000",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
-                  },
-                  {
-                    "name": "1",
-                    "items": [
-                      {
-                        "s": "alice",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "id_card",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "mask_id_card",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "i64": "8",
-                        "f": 0.0,
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "110101199001011237",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "110101********1237",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
-                  },
-                  {
-                    "name": "2",
-                    "items": [
-                      {
-                        "s": "alice",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "name",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "mask_name",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "i64": "8",
-                        "f": 0.0,
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "Alice",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "A**e",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
+                    "type": "str"
                   }
                 ],
                 "name": "",
-                "desc": ""
-              }
+                "rows": [
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "alice",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "mobile",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "mask_mobile",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "8",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "13800138000",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "138****8000",
+                        "ss": []
+                      }
+                    ],
+                    "name": "0"
+                  },
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "alice",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "id_card",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "mask_id_card",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "8",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "110101199001011237",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "110101********1237",
+                        "ss": []
+                      }
+                    ],
+                    "name": "1"
+                  },
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "alice",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "name",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "mask_name",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "8",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "Alice",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "A**e",
+                        "ss": []
+                      }
+                    ],
+                    "name": "2"
+                  }
+                ]
+              },
+              "type": "table"
             }
           ],
-          "name": "",
-          "desc": ""
+          "desc": "",
+          "name": ""
         }
       ],
-      "desc": ""
+      "name": "audit_alice"
     }
   ]
 }

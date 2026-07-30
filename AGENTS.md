@@ -420,6 +420,7 @@ When Kuscia master + alice + bob are running via local Docker with host port map
 | `kuscia.api_port` / `PRIVAHUB_KUSCIA_API_PORT` | `18083` | Mapped from container port 8083 |
 | `kuscia.gateway` / `PRIVAHUB_KUSCIA_GATEWAY` | `127.0.0.1:18080` | 容器 Envoy 跨域网关端口 1080 映射到宿主机 18080（非 Docker 模式下使用 80） |
 | `kuscia.protocol` / `PRIVAHUB_KUSCIA_PROTOCOL` | `notls` | Dev profile, no mTLS |
+| `PRIVAHUB_DATA_DIR` | `${INSTALL_DIR:-$HOME/kuscia}/master/data` | 上传 CSV 的落盘根目录；dev-start.sh 自动设置为 Kuscia lite 节点数据目录的宿主机侧（`<kuscia_root>/master/data/<domain>/`），任务容器经 DataProxy 可直接读取 |
 
 Use the dev profile to apply these defaults automatically:
 

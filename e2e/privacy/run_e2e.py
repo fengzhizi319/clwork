@@ -44,14 +44,21 @@ _COMPONENT_OUTPUT_CACHE: Dict[str, int] = {}
 
 
 def _component_output_count(comp: Dict[str, str]) -> int:
-    """Return the number of outputs declared for a component in secretflow.json."""
+    """Return the number of outputs declared for a component in the comp list."""
     key = f"{comp['domain']}/{comp['name']}:{comp['version']}"
     if key in _COMPONENT_OUTPUT_CACHE:
         return _COMPONENT_OUTPUT_CACHE[key]
-    # Search for the component definition used by the SecretPad backend.
-    comp_def_path = Path(__file__).parent.parent.parent / "secretpad" / "config" / "components" / "secretflow.json"
+    # Component definitions, in preference order: the list generated from the
+    # local secretflow source (authoritative for the custom image), then the
+    # legacy SecretPad static file.
+    candidates = [
+        Path(__file__).parent / "comp_list_local.json",
+        Path(__file__).parent.parent.parent / "secretpad" / "config" / "components" / "secretflow.json",
+    ]
     count = 1  # Fallback to a single output if the definition cannot be read.
-    if comp_def_path.exists():
+    for comp_def_path in candidates:
+        if not comp_def_path.exists():
+            continue
         try:
             with open(comp_def_path) as f:
                 comp_list = json.load(f)
@@ -61,6 +68,8 @@ def _component_output_count(comp: Dict[str, str]) -> int:
                     break
         except Exception:
             pass
+        else:
+            break
     _COMPONENT_OUTPUT_CACHE[key] = count
     return count
 
@@ -126,14 +135,19 @@ class SecretPadClient:
 
     def _login(self, user: str, password: str) -> str:
         pwd_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
+        # Go backend binds `password`; legacy Java SecretPad used `passwordHash`.
         resp = self._request(
             "POST",
             "/api/login",
-            {"name": user, "passwordHash": pwd_hash},
+            {"name": user, "password": password, "passwordHash": pwd_hash},
         )
         if resp.get("status", {}).get("code") != 0:
             raise RuntimeError(f"Login failed: {resp}")
-        return resp["data"]["token"]
+        data = resp["data"]
+        token = data.get("token") or data.get("accessToken")
+        if not token:
+            raise RuntimeError(f"Login response missing token: {resp}")
+        return token
 
     def create_project(self, name: str, description: str, compute_mode: str = "MPC") -> str:
         resp = self._request(
@@ -171,6 +185,8 @@ class SecretPadClient:
                         "file": f,
                         "Node-Id": (None, node_id),
                     },
+                    # Go backend reads the node id from query/header, not the form.
+                    extra_headers={"Node-Id": node_id},
                 )
         else:
             # urllib multipart upload is verbose; require requests for upload.
@@ -188,8 +204,29 @@ class SecretPadClient:
         )
         if resp.get("status", {}).get("code") != 0:
             return []
-        items = resp.get("data", {}).get("datatableNodeVOList", [])
-        return [item.get("datatableVO", {}) for item in items]
+        data = resp.get("data")
+        if isinstance(data, dict):
+            # Legacy Java SecretPad shape: data.datatableNodeVOList[].datatableVO
+            items = data.get("datatableNodeVOList", [])
+            return [item.get("datatableVO", {}) for item in items]
+        if isinstance(data, list):
+            # Go backend shape: flat list; the table name lives in tableConfigs.
+            vos = []
+            for item in data:
+                name = ""
+                try:
+                    name = json.loads(item.get("tableConfigs") or "{}").get("tablename", "")
+                except Exception:
+                    pass
+                vos.append(
+                    {
+                        "datatableId": item.get("datatableId") or item.get("datatable_id"),
+                        "datatableName": name or item.get("datatableName") or "",
+                        "status": item.get("status") or "Available",
+                    }
+                )
+            return vos
+        return []
 
     def find_datatable_by_name(self, owner_id: str, name: str) -> Optional[str]:
         """Return datatableId of an Available datatable with the given name, or None."""

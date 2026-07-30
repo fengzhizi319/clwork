@@ -1,633 +1,633 @@
 {
   "tabs": [
     {
-      "name": "column_summary",
       "desc": "summary",
       "divs": [
         {
           "children": [
             {
-              "type": "table",
               "table": {
+                "desc": "",
                 "headers": [
                   {
+                    "desc": "",
                     "name": "column",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "final_level",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "hit_count",
-                    "type": "int",
-                    "desc": ""
+                    "type": "int"
                   },
                   {
+                    "desc": "",
                     "name": "categories",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "review_count",
-                    "type": "int",
-                    "desc": ""
+                    "type": "int"
                   },
                   {
+                    "desc": "",
                     "name": "shadow_diff_count",
-                    "type": "int",
-                    "desc": ""
-                  }
-                ],
-                "rows": [
-                  {
-                    "name": "0",
-                    "items": [
-                      {
-                        "s": "name",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "L3",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "[]",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
-                  },
-                  {
-                    "name": "1",
-                    "items": [
-                      {
-                        "s": "id_card",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "L3",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "i64": "1",
-                        "f": 0.0,
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "[\"PII_ID_CARD\"]",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
-                  },
-                  {
-                    "name": "2",
-                    "items": [
-                      {
-                        "s": "mobile",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "L3",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "i64": "8",
-                        "f": 0.0,
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "[\"PII_MOBILE\"]",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
-                  },
-                  {
-                    "name": "3",
-                    "items": [
-                      {
-                        "s": "age",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "L3",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "[]",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
-                  },
-                  {
-                    "name": "4",
-                    "items": [
-                      {
-                        "s": "zipcode",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "L3",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "[]",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
-                  },
-                  {
-                    "name": "5",
-                    "items": [
-                      {
-                        "s": "gender",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "L3",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "[]",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
-                  },
-                  {
-                    "name": "6",
-                    "items": [
-                      {
-                        "s": "diagnosis",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "L4",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "i64": "8",
-                        "f": 0.0,
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "[\"MEDICAL_ICD10_CANCER\", \"MEDICAL_ICD10_GENERAL\", \"MEDICAL_ICD10_HIV\"]",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
-                  },
-                  {
-                    "name": "7",
-                    "items": [
-                      {
-                        "s": "brca1_status",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "L5",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "i64": "8",
-                        "f": 0.0,
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "[\"GENOMIC_BRCA_TP53\"]",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
+                    "type": "int"
                   }
                 ],
                 "name": "",
-                "desc": ""
-              }
+                "rows": [
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "name",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "L3",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "[]",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      }
+                    ],
+                    "name": "0"
+                  },
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "id_card",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "L3",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "1",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "[\"PII_ID_CARD\"]",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      }
+                    ],
+                    "name": "1"
+                  },
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "mobile",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "L3",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "8",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "[\"PII_MOBILE\"]",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      }
+                    ],
+                    "name": "2"
+                  },
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "age",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "L3",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "[]",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      }
+                    ],
+                    "name": "3"
+                  },
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "zipcode",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "L3",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "[]",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      }
+                    ],
+                    "name": "4"
+                  },
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "gender",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "L3",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "[]",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      }
+                    ],
+                    "name": "5"
+                  },
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "diagnosis",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "L4",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "8",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "[\"MEDICAL_ICD10_CANCER\", \"MEDICAL_ICD10_GENERAL\", \"MEDICAL_ICD10_HIV\"]",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      }
+                    ],
+                    "name": "6"
+                  },
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "brca1_status",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "L5",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "8",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "[\"GENOMIC_BRCA_TP53\"]",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      }
+                    ],
+                    "name": "7"
+                  }
+                ]
+              },
+              "type": "table"
             }
           ],
-          "name": "",
-          "desc": ""
+          "desc": "",
+          "name": ""
         }
-      ]
+      ],
+      "name": "column_summary"
     }
   ]
 }

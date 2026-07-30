@@ -1,97 +1,97 @@
 {
   "tabs": [
     {
-      "name": "summary",
+      "desc": "",
       "divs": [
         {
           "children": [
             {
-              "type": "table",
               "table": {
+                "desc": "",
                 "headers": [
                   {
+                    "desc": "",
                     "name": "k",
-                    "type": "int",
-                    "desc": ""
+                    "type": "int"
                   },
                   {
+                    "desc": "",
                     "name": "is_k_anonymous",
-                    "type": "bool",
-                    "desc": ""
+                    "type": "bool"
                   },
                   {
+                    "desc": "",
                     "name": "suppression_count",
-                    "type": "int",
-                    "desc": ""
+                    "type": "int"
                   },
                   {
+                    "desc": "",
                     "name": "equivalence_classes",
-                    "type": "int",
-                    "desc": ""
-                  }
-                ],
-                "rows": [
-                  {
-                    "name": "0",
-                    "items": [
-                      {
-                        "i64": "2",
-                        "f": 0.0,
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "b": true,
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 0.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "i64": "4",
-                        "f": 0.0,
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
+                    "type": "int"
                   }
                 ],
                 "name": "",
-                "desc": ""
-              }
+                "rows": [
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "2",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": true,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "4",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      }
+                    ],
+                    "name": "0"
+                  }
+                ]
+              },
+              "type": "table"
             }
           ],
-          "name": "",
-          "desc": ""
+          "desc": "",
+          "name": ""
         }
       ],
-      "desc": ""
+      "name": "summary"
     }
   ]
 }

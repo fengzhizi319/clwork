@@ -619,6 +619,12 @@ start_backend() {
     # Docker Kuscia 模式下使用 dev profile (api_port: 18083, gateway: 127.0.0.1:18080)
     export PRIVAHUB_PROFILE=dev
 
+    # 上传数据直接写入 Kuscia lite 节点的数据目录(宿主机侧),
+    # 这样 datatable 注册后 SecretFlow 任务容器内即可读取到 CSV 文件。
+    # 目录布局:<kuscia_root>/master/data/<domain>/,与 lite 容器挂载一致。
+    export PRIVAHUB_DATA_DIR="${PRIVAHUB_DATA_DIR:-${INSTALL_DIR:-$HOME/kuscia}/master/data}"
+    log_info "数据上传目录:$PRIVAHUB_DATA_DIR"
+
     nohup ./bin/privahub -config ./config/privahub.yaml > "$LOG_DIR/backend.log" 2>&1 &
 
     echo $! > "$pidfile"

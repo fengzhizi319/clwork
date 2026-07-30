@@ -21,6 +21,20 @@ e2e/privacy/
 
 - `params/*.json` 中的 `component` 和 `attrs` 字段同时被 `run_direct.py` 和 `run_e2e.py` 使用，保证两端输入完全一致。
 - 所有含随机性的组件（差分隐私、LDP、查询混淆）均使用固定 `random_state`，确保可复现。
+- `comp_list_local.json` 是 `run_e2e.py` 用来确定组件输出数量的组件清单，由本地 `secretflow/` 源码生成。源码中的组件定义变更后需重新生成：
+
+```bash
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate sf310
+cd /home/charles/code/clwork
+PYTHONPATH=./secretflow python -c "
+import json
+from google.protobuf.json_format import MessageToJson
+from secretflow.component.core.utils import get_comp_list_def
+with open('e2e/privacy/comp_list_local.json', 'w') as f:
+    json.dump(json.loads(MessageToJson(get_comp_list_def())), f, indent=1)
+"
+```
 
 ## 直接运行（Direct）
 

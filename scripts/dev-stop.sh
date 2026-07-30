@@ -159,8 +159,9 @@ stop_pidfile() {
                 kill_pids -TERM $descendants
                 sleep 1
                 # 对仍然存活的后代进程强制终止
+                # 末尾进程已退出时 for 循环返回非零，配合 pipefail 会中断脚本，需 || true
                 local still_alive
-                still_alive="$(for d in $descendants; do is_alive "$d" && echo "$d"; done | tr '\n' ' ')"
+                still_alive="$(for d in $descendants; do is_alive "$d" && echo "$d"; done | tr '\n' ' ' || true)"
                 if [ -n "$still_alive" ]; then
                     kill_pids -KILL $still_alive
                 fi

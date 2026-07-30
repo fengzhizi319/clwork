@@ -1,113 +1,113 @@
 {
   "tabs": [
     {
-      "name": "perturbation",
+      "desc": "",
       "divs": [
         {
           "children": [
             {
-              "type": "table",
               "table": {
+                "desc": "",
                 "headers": [
                   {
+                    "desc": "",
                     "name": "op",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "mechanism",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "query_col",
-                    "type": "str",
-                    "desc": ""
+                    "type": "str"
                   },
                   {
+                    "desc": "",
                     "name": "count",
-                    "type": "int",
-                    "desc": ""
+                    "type": "int"
                   },
                   {
+                    "desc": "",
                     "name": "epsilon",
-                    "type": "float",
-                    "desc": ""
-                  }
-                ],
-                "rows": [
-                  {
-                    "name": "0",
-                    "items": [
-                      {
-                        "s": "perturb",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "binary_rr",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "s": "has_disease",
-                        "f": 0.0,
-                        "i64": "0",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "i64": "100",
-                        "f": 0.0,
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      },
-                      {
-                        "f": 1.0,
-                        "i64": "0",
-                        "s": "",
-                        "b": false,
-                        "fs": [],
-                        "i64s": [],
-                        "ss": [],
-                        "bs": [],
-                        "isNa": false
-                      }
-                    ],
-                    "desc": ""
+                    "type": "float"
                   }
                 ],
                 "name": "",
-                "desc": ""
-              }
+                "rows": [
+                  {
+                    "desc": "",
+                    "items": [
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "perturb",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "binary_rr",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "has_disease",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 0,
+                        "fs": [],
+                        "i64": "100",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      },
+                      {
+                        "b": false,
+                        "bs": [],
+                        "f": 1,
+                        "fs": [],
+                        "i64": "0",
+                        "i64s": [],
+                        "isNa": false,
+                        "s": "",
+                        "ss": []
+                      }
+                    ],
+                    "name": "0"
+                  }
+                ]
+              },
+              "type": "table"
             }
           ],
-          "name": "",
-          "desc": ""
+          "desc": "",
+          "name": ""
         }
       ],
-      "desc": ""
+      "name": "perturbation"
     }
   ]
 }
